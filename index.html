@@ -2,334 +2,546 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Condo MA — Task Management</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Condo MA — Management Portal</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0d0f12;--sf:#13161b;--sf2:#1a1e25;--sf3:#222730;
-  --bd:#2a2f3a;--bd2:#353c49;
-  --tx:#e8eaf0;--tx2:#8f95a3;--tx3:#5a6070;
-  --ac:#4f8ef7;--ac-d:rgba(79,142,247,.12);
+  --bg:#0b0d10;--sf:#12151a;--sf2:#181c23;--sf3:#1e232c;--sf4:#252b36;
+  --bd:#252b36;--bd2:#2f3747;--bd3:#3a4458;
+  --tx:#e8eaf0;--tx2:#8f95a3;--tx3:#545c6e;
+  --ac:#4f8ef7;--ac2:#3a7de8;--ac-d:rgba(79,142,247,.13);
   --gn:#2dd87a;--gn-d:rgba(45,216,122,.12);
   --yw:#f5c842;--yw-d:rgba(245,200,66,.12);
   --rd:#f05353;--rd-d:rgba(240,83,83,.12);
   --or:#f5843a;--or-d:rgba(245,132,58,.12);
+  --pu:#a78bfa;--pu-d:rgba(167,139,250,.12);
   --fn:'Sora',sans-serif;--mo:'DM Mono',monospace;
-  --r:10px;--rs:6px;
+  --r:10px;--rs:6px;--rss:4px;
+  --sidebar-w:230px;
 }
 html,body{height:100%;font-family:var(--fn);background:var(--bg);color:var(--tx);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
 button{font-family:var(--fn);cursor:pointer;border:none;outline:none;transition:all .15s}
-input,textarea,select{font-family:var(--fn);outline:none}
+input,textarea,select{font-family:var(--fn);outline:none;transition:border-color .15s}
 ::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:var(--sf)}
-::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
-@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bd3);border-radius:3px}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sl{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
 
-/* ── LAYOUT ── */
+/* ── APP SHELL ── */
 #app{display:flex;height:100vh;overflow:hidden}
-#sidebar{width:220px;background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0;transition:transform .3s}
+#sidebar{width:var(--sidebar-w);background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0;transition:transform .3s;z-index:50}
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.sb-mask{display:none;position:fixed;inset:0;z-index:49;background:rgba(0,0,0,.55)}
 
 /* ── SIDEBAR ── */
-.logo{padding:18px 16px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px}
-.logo-ico{width:32px;height:32px;background:var(--ac);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.logo-name{font-size:13px;font-weight:700;line-height:1.2}
-.logo-sub{font-size:10px;color:var(--tx3);font-family:var(--mo)}
-nav{padding:10px 8px;flex:1;overflow-y:auto}
-.nb{width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;margin-bottom:2px;background:transparent;border:none;color:var(--tx2);font-size:13px;font-weight:400;text-align:left;cursor:pointer}
-.nb:hover{background:var(--sf2)}
+.logo{padding:18px 16px 15px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:11px;flex-shrink:0}
+.logo-ico{width:34px;height:34px;background:linear-gradient(135deg,var(--ac),#6ba3ff);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.logo-name{font-size:13px;font-weight:700;letter-spacing:-.01em}
+.logo-tag{font-size:10px;color:var(--tx3);font-family:var(--mo);margin-top:1px}
+.nav-section{padding:10px 8px 4px;font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.09em;padding-left:14px}
+.nb{width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;margin-bottom:1px;background:transparent;border:none;color:var(--tx2);font-size:13px;font-weight:400;text-align:left;cursor:pointer}
+.nb:hover{background:var(--sf2);color:var(--tx)}
 .nb.on{background:var(--ac-d);color:var(--ac);font-weight:600}
 .nb-l{display:flex;align-items:center;gap:9px}
-.nc{font-size:10px;font-family:var(--mo);background:var(--sf3);color:var(--tx3);padding:1px 6px;border-radius:99px}
+.nb-ico{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nc{font-size:10px;font-family:var(--mo);background:var(--sf3);color:var(--tx3);padding:1px 6px;border-radius:99px;flex-shrink:0}
 .nb.on .nc{background:var(--ac);color:#fff}
-.sb-stats{padding:10px 14px;border-top:1px solid var(--bd)}
-.sb-stat-lbl{font-size:10px;color:var(--tx3);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
-.sb-stat{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd);font-size:12px;color:var(--tx2)}
-.sb-stat:last-child{border-bottom:none}
+.nc.red{background:var(--rd-d);color:var(--rd)}
+.sb-footer{padding:12px 14px;border-top:1px solid var(--bd);margin-top:auto}
+.sb-kpi{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:11px;color:var(--tx2)}
 
-/* ── HEADER ── */
-header{background:var(--sf);border-bottom:1px solid var(--bd);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0}
-.sw{flex:1;position:relative;min-width:0}
-.sw input{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);padding:8px 32px 8px 32px;color:var(--tx);font-size:13px}
-.sw input:focus{border-color:var(--bd2)}
-.sw input::placeholder{color:var(--tx3)}
-.si{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--tx3);font-size:14px;pointer-events:none}
-.sc{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--tx3);font-size:16px;line-height:1;padding:2px;display:none}
-.hb{padding:8px 12px;border-radius:var(--rs);background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;white-space:nowrap}
-.hb:hover{border-color:var(--ac);color:var(--ac)}
-.hb.on{background:var(--ac-d);border-color:var(--ac);color:var(--ac)}
-.btn-new{padding:8px 14px;border-radius:var(--rs);background:var(--ac);border:none;color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap}
-.btn-new:hover{background:#3a7de8}
-#mob-menu{display:none;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);padding:8px 10px;color:var(--tx2);font-size:18px}
+/* ── TOPBAR ── */
+header{background:var(--sf);border-bottom:1px solid var(--bd);padding:11px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.mob-ham{display:none;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);padding:7px 9px;color:var(--tx2);font-size:16px}
+.search-box{flex:1;position:relative;min-width:0}
+.search-box input{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);padding:8px 32px 8px 34px;color:var(--tx);font-size:13px}
+.search-box input:focus{border-color:var(--bd2)}
+.search-box input::placeholder{color:var(--tx3)}
+.si{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--tx3);font-size:13px;pointer-events:none}
+.sx{position:absolute;right:9px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--tx3);font-size:16px;padding:2px;display:none}
+.hbtn{padding:7px 12px;border-radius:var(--rs);background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.hbtn:hover{border-color:var(--ac);color:var(--ac)}
+.hbtn.on{background:var(--ac-d);border-color:var(--ac);color:var(--ac)}
+.btn-add{padding:7px 14px;border-radius:var(--rs);background:var(--ac);border:none;color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.btn-add:hover{background:var(--ac2)}
 
 /* ── FILTER BAR ── */
-#fbar{background:var(--sf);border-bottom:1px solid var(--bd);padding:8px 20px;display:none;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0}
+#fbar{background:var(--sf);border-bottom:1px solid var(--bd);padding:8px 20px;display:none;gap:12px;flex-wrap:wrap;align-items:center;flex-shrink:0}
 #fbar.open{display:flex}
 .fl{font-size:11px;color:var(--tx3);font-weight:600;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
 .pills{display:flex;gap:5px;flex-wrap:wrap}
 .pill{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500;border:1px solid var(--bd);background:transparent;color:var(--tx2);cursor:pointer}
-.pill:hover{border-color:var(--bd2)}
+.pill:hover{border-color:var(--bd2);color:var(--tx)}
 .pill.on{border-color:var(--ac);background:var(--ac-d);color:var(--ac)}
 
 /* ── CONTENT ── */
-#content{flex:1;overflow-y:auto;padding:22px}
-.page{display:none}.page.on{display:block}
+#content{flex:1;overflow-y:auto;padding:22px 24px}
+.page{display:none}.page.on{display:block;animation:sl .2s ease}
 
-/* ── DASHBOARD ── */
-.pg-title{font-size:20px;font-weight:700;margin-bottom:2px}
-.pg-sub{font-size:13px;color:var(--tx3);margin-bottom:20px}
-.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
-.sc-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden}
-.sc-bg{position:absolute;right:-6px;top:-6px;font-size:60px;opacity:.06;pointer-events:none}
-.sc-v{font-size:24px;font-weight:700;font-family:var(--mo);line-height:1}
-.sc-l{font-size:11px;color:var(--tx3);margin-top:5px;font-weight:500;text-transform:uppercase;letter-spacing:.07em}
-.meter{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px 18px;margin-bottom:18px}
-.meter-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.meter-h span:first-child{font-size:12px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em}
-.meter-h span:last-child{font-size:17px;font-weight:700;color:var(--gn);font-family:var(--mo)}
-.mtrack{background:var(--sf3);border-radius:99px;height:7px;overflow:hidden}
-.mfill{height:100%;background:linear-gradient(90deg,var(--gn),#4ade80);border-radius:99px;transition:width .6s ease}
-.sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.sh-l{font-size:12px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em}
-.sh-r{font-size:12px;color:var(--ac);background:none;border:none;font-weight:500;cursor:pointer}
+/* ── PAGE HEADER ── */
+.pg-h{margin-bottom:20px}
+.pg-h h1{font-size:19px;font-weight:700;letter-spacing:-.02em}
+.pg-h p{font-size:12px;color:var(--tx3);margin-top:3px}
 
-/* ── STATS PAGE ── */
-.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:18px}
-.stat-block{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:18px}
-.stat-block h3{font-size:12px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px}
-.cat-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.cat-bar-label{font-size:12px;color:var(--tx2);width:120px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cat-bar-track{flex:1;height:6px;background:var(--sf3);border-radius:99px;overflow:hidden}
-.cat-bar-fill{height:100%;border-radius:99px}
-.cat-bar-val{font-size:11px;color:var(--tx3);font-family:var(--mo);width:30px;text-align:right;flex-shrink:0}
-.kpi-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bd)}
-.kpi-row:last-child{border-bottom:none}
-.kpi-lbl{font-size:12px;color:var(--tx2)}
-.kpi-val{font-size:13px;font-weight:600;font-family:var(--mo);color:var(--tx)}
-.timeline-item{display:flex;gap:12px;margin-bottom:12px;animation:fi .2s ease}
-.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px}
-.tl-line{width:1px;background:var(--bd);flex-shrink:0;margin:4px auto 0;min-height:20px}
-.tl-body{flex:1;min-width:0;padding-bottom:4px}
-.tl-title{font-size:13px;font-weight:600;line-height:1.3}
-.tl-meta{font-size:11px;color:var(--tx3);font-family:var(--mo);margin-top:2px}
+/* ── STAT TILES ── */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.tile{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:15px 17px;position:relative;overflow:hidden;cursor:pointer;transition:border-color .2s}
+.tile:hover{border-color:var(--bd2)}
+.tile.active-tile{border-color:var(--ac)}
+.tile-bg{position:absolute;right:-5px;top:-5px;font-size:55px;opacity:.05;pointer-events:none}
+.tile-val{font-size:26px;font-weight:700;font-family:var(--mo);line-height:1}
+.tile-lbl{font-size:11px;color:var(--tx3);margin-top:5px;font-weight:500;text-transform:uppercase;letter-spacing:.07em}
+.tile-sub{font-size:10px;color:var(--tx3);margin-top:3px;font-family:var(--mo)}
 
-/* ── TASK LIST ── */
-.vh{margin-bottom:18px}
-.vh h2{font-size:18px;font-weight:700}
-.vh p{font-size:12px;color:var(--tx3);margin-top:2px}
+/* ── PROGRESS BARS ── */
+.prog-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:15px 18px;margin-bottom:16px}
+.prog-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.prog-lbl{font-size:12px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em}
+.prog-pct{font-size:16px;font-weight:700;color:var(--gn);font-family:var(--mo)}
+.prog-track{background:var(--sf3);border-radius:99px;height:7px;overflow:hidden}
+.prog-fill{height:100%;border-radius:99px;transition:width .7s ease}
+.prog-segments{display:flex;gap:0;height:7px;border-radius:99px;overflow:hidden;background:var(--sf3)}
+.prog-seg{height:100%;transition:width .7s ease}
+
+/* ── SECTION HEADERS ── */
+.sec-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sec-hl{font-size:12px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em}
+.sec-hr{font-size:12px;color:var(--ac);background:none;border:none;font-weight:500;cursor:pointer}
+.sec-hr:hover{text-decoration:underline}
+
+/* ── TASK CARDS ── */
 .tl{display:flex;flex-direction:column;gap:7px}
-.empty{text-align:center;padding:50px;color:var(--tx3);font-size:13px}
-
-/* ── TASK CARD ── */
-.tc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden;animation:fi .2s ease;transition:border-color .2s}
+.tc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px;position:relative;overflow:hidden;animation:fi .2s ease;transition:border-color .15s}
 .tc:hover{border-color:var(--bd2)}
-.tc-accent{position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px}
-.tc-top{padding-left:6px}
-.tc-badges{display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-wrap:wrap}
-.cbadge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
-.ubadge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:var(--mo);padding:2px 7px;border-radius:99px;font-weight:500;flex-shrink:0}
-.udot{width:5px;height:5px;border-radius:50%;flex-shrink:0;display:inline-block}
-.tc-title{font-size:14px;font-weight:600;line-height:1.3}
+.tc-bar{position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px}
+.tc-inner{padding-left:8px}
+.tc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+.tc-badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex:1;min-width:0}
+.badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;letter-spacing:.04em;white-space:nowrap}
+.ubadge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-family:var(--mo);padding:2px 7px;border-radius:99px;font-weight:500;white-space:nowrap}
+.udot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.tc-title{font-size:14px;font-weight:600;line-height:1.35;margin-bottom:2px}
 .tc-title.done{color:var(--tx3);text-decoration:line-through}
-.tc-desc{font-size:12px;color:var(--tx2);margin-top:3px;line-height:1.5}
+.tc-desc{font-size:12px;color:var(--tx2);line-height:1.5}
 .tc-desc.done{opacity:.5}
-.tc-foot{display:flex;align-items:center;justify-content:space-between;padding-left:6px;flex-wrap:wrap;gap:6px}
-.tc-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.td{font-size:11px;color:var(--tx3);font-family:var(--mo)}
-.tid{font-size:11px;color:var(--tx3);font-family:var(--mo)}
-.tacts{display:flex;align-items:center;gap:5px}
-.ab{padding:4px 7px;border-radius:var(--rs);background:transparent;border:1px solid var(--bd);color:var(--tx3);display:flex;align-items:center;font-size:12px;gap:3px}
+.tc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-left:8px;flex-wrap:wrap;gap:6px}
+.tc-meta{display:flex;gap:10px;flex-wrap:wrap}
+.tmeta{font-size:11px;color:var(--tx3);font-family:var(--mo)}
+.tacts{display:flex;gap:5px}
+.ab{padding:4px 7px;border-radius:var(--rs);background:transparent;border:1px solid var(--bd);color:var(--tx3);font-size:12px;display:flex;align-items:center;gap:3px}
 .ab:hover{border-color:var(--bd2);color:var(--tx2)}
-.ab.del:hover{border-color:var(--rd);color:var(--rd);background:var(--rd-d)}
-.adone{padding:4px 9px;border-radius:var(--rs);background:var(--gn-d);border:1px solid rgba(45,216,122,.2);color:var(--gn);font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px}
-.adone:hover{background:rgba(45,216,122,.22)}
+.ab.danger:hover{border-color:var(--rd);color:var(--rd);background:var(--rd-d)}
+.ab.primary{background:var(--gn-d);border-color:rgba(45,216,122,.25);color:var(--gn);font-weight:600}
+.ab.primary:hover{background:rgba(45,216,122,.2)}
+.ab.restore{background:var(--sf3);border-color:var(--bd2)}
+.ab.restore:hover{color:var(--tx)}
+.empty-state{text-align:center;padding:50px 20px;color:var(--tx3);font-size:13px}
+.empty-state .ei{font-size:36px;margin-bottom:10px}
 
-/* ── MODAL ── */
-#ov{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.65);backdrop-filter:blur(4px)}
+/* ── CARDS (general) ── */
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:18px}
+.card-title{font-size:12px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px}
+.kpi-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bd)}
+.kpi-row:last-child{border-bottom:none}
+.kpi-l{font-size:12px;color:var(--tx2)}
+.kpi-v{font-size:13px;font-weight:600;font-family:var(--mo)}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+
+/* ── CONTRACTS ── */
+.contract-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:6px;animation:fi .2s ease;transition:border-color .15s}
+.contract-row:hover{border-color:var(--bd2)}
+.contract-row.expiring{border-color:rgba(245,200,66,.35);background:rgba(245,200,66,.04)}
+.contract-row.expired{border-color:rgba(240,83,83,.35);background:rgba(240,83,83,.04)}
+.cr-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cr-main{flex:1;min-width:0}
+.cr-name{font-size:13px;font-weight:600;line-height:1.3}
+.cr-sub{font-size:11px;color:var(--tx3);margin-top:1px}
+.cr-col{text-align:right;flex-shrink:0}
+.cr-val{font-size:12px;font-weight:600;font-family:var(--mo)}
+.cr-lbl{font-size:10px;color:var(--tx3);margin-top:1px}
+.expiry-badge{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600}
+
+/* ── DEFECTS ── */
+.defect-row{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:13px;margin-bottom:7px;animation:fi .2s ease}
+.defect-row:hover{border-color:var(--bd2)}
+.dr-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+.dr-status{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px}
+.dr-foot{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.dr-meta{font-size:11px;color:var(--tx3);font-family:var(--mo)}
+.progress-bar-sm{height:4px;background:var(--sf3);border-radius:99px;overflow:hidden;flex:1;margin:0 10px}
+.progress-bar-sm-fill{height:100%;border-radius:99px}
+
+/* ── REPORT MODAL ── */
+.report-step{margin-bottom:16px}
+.report-step h4{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.r-opts{display:flex;flex-wrap:wrap;gap:7px}
+.r-opt{padding:6px 14px;border-radius:var(--rs);border:1px solid var(--bd);background:transparent;color:var(--tx2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.r-opt:hover{border-color:var(--bd2);color:var(--tx)}
+.r-opt.on{border-color:var(--ac);background:var(--ac-d);color:var(--ac)}
+.date-row{display:flex;gap:8px;flex-wrap:wrap}
+.date-row select,.date-row input{flex:1;min-width:80px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);padding:7px 10px;color:var(--tx);font-size:12px}
+.date-row select:focus,.date-row input:focus{border-color:var(--bd2)}
+
+/* ── TASK/GENERIC MODAL ── */
+#ov{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(5px)}
 #ov.open{display:flex}
-.modal{background:var(--sf);border:1px solid var(--bd2);border-radius:14px;width:100%;max-width:520px;padding:26px;box-shadow:0 24px 64px rgba(0,0,0,.6);animation:fi .2s ease;margin:16px;max-height:92vh;overflow-y:auto}
-.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.mh h3{font-size:15px;font-weight:600}
-.mh p{font-size:12px;color:var(--tx3);margin-top:2px}
-.mx{background:var(--sf3);border:1px solid var(--bd);border-radius:7px;padding:4px 8px;color:var(--tx2);font-size:18px;line-height:1}
-.mx:hover{color:var(--tx)}
-.fg{display:flex;flex-direction:column;gap:14px}
-.flbl{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px}
+.modal{background:var(--sf);border:1px solid var(--bd2);border-radius:14px;width:100%;max-width:540px;padding:26px;box-shadow:0 28px 70px rgba(0,0,0,.65);animation:fi .2s ease;margin:16px;max-height:92vh;overflow-y:auto}
+.modal.wide{max-width:680px}
+.mhdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.mhdr h3{font-size:15px;font-weight:700}
+.mhdr p{font-size:12px;color:var(--tx3);margin-top:2px}
+.mclose{background:var(--sf3);border:1px solid var(--bd);border-radius:7px;padding:4px 8px;color:var(--tx2);font-size:18px;line-height:1;flex-shrink:0}
+.mclose:hover{color:var(--tx)}
+.fgrp{display:flex;flex-direction:column;gap:14px}
+.flbl{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px}
 .cpills{display:flex;flex-wrap:wrap;gap:5px}
 .cpill{padding:4px 11px;border-radius:99px;font-size:12px;font-weight:500;border:1px solid var(--bd);background:transparent;color:var(--tx2);cursor:pointer}
 .fi{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);padding:9px 12px;color:var(--tx);font-size:13px}
 .fi:focus{border-color:var(--bd2)}
 .fi::placeholder{color:var(--tx3)}
 textarea.fi{resize:vertical}
-.mf{display:flex;gap:10px;margin-top:20px}
+select.fi{cursor:pointer}
+.fi-row{display:flex;gap:10px}
+.fi-row .fi{flex:1}
+.mfooter{display:flex;gap:10px;margin-top:20px}
 .bcancel{flex:1;padding:9px;border-radius:var(--rs);background:transparent;border:1px solid var(--bd);color:var(--tx2);font-size:13px;font-weight:500}
 .bcancel:hover{border-color:var(--bd2)}
 .bsave{flex:2;padding:9px;border-radius:var(--rs);background:var(--ac);color:#fff;font-size:13px;font-weight:600;border:none}
-.bsave:hover:not(:disabled){background:#3a7de8}
-.bsave:disabled{background:var(--bd);color:var(--tx3);cursor:not-allowed}
+.bsave:hover:not(:disabled){background:var(--ac2)}
+.bsave:disabled{background:var(--sf3);color:var(--tx3);cursor:not-allowed}
+.bprimary{padding:9px 18px;border-radius:var(--rs);background:var(--ac);color:#fff;font-size:13px;font-weight:600;border:none;display:flex;align-items:center;gap:6px}
+.bprimary:hover{background:var(--ac2)}
+.bdanger{padding:9px 18px;border-radius:var(--rs);background:var(--rd-d);color:var(--rd);font-size:13px;font-weight:600;border:1px solid rgba(240,83,83,.3)}
+.bdanger:hover{background:rgba(240,83,83,.2)}
 
-/* ── MOBILE ── */
-@media(max-width:680px){
-  #sidebar{position:fixed;left:0;top:0;bottom:0;z-index:50;transform:translateX(-100%)}
-  #sidebar.mob-open{transform:translateX(0)}
-  #mob-menu{display:flex}
-  .sb-overlay{display:none;position:fixed;inset:0;z-index:49;background:rgba(0,0,0,.5)}
-  .sb-overlay.open{display:block}
-  .sg{grid-template-columns:repeat(2,1fr)}
-  .stats-grid{grid-template-columns:1fr}
-  header{padding:10px 14px;gap:8px}
-  #content{padding:14px}
-  .hb span,.hb-txt{display:none}
-  .hb{padding:8px 10px}
-  .btn-new span{display:none}
-  .btn-new{padding:8px 12px}
-  .pg-title{font-size:17px}
+/* ── BUDGET ── */
+.budget-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:6px}
+.budget-row:hover{border-color:var(--bd2)}
+.br-item{flex:1;font-size:13px;font-weight:500}
+.br-cat{font-size:11px;color:var(--tx3)}
+.br-num{font-family:var(--mo);font-size:12px;font-weight:600;text-align:right;min-width:90px}
+.budget-total{background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.bt-lbl{font-size:12px;font-weight:600;color:var(--tx2)}
+.bt-val{font-size:15px;font-weight:700;font-family:var(--mo)}
+
+/* ── TIMELINE ── */
+.tl-item{display:flex;gap:10px;margin-bottom:10px}
+.tl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.tl-line-wrap{display:flex;flex-direction:column;align-items:center;width:9px;flex-shrink:0}
+.tl-conn{width:1px;background:var(--bd2);flex:1;min-height:16px}
+.tl-body{flex:1;min-width:0;padding-bottom:6px}
+.tl-title{font-size:13px;font-weight:600;line-height:1.3}
+.tl-meta{font-size:11px;color:var(--tx3);font-family:var(--mo);margin-top:2px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  #sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  .sb-mask.open{display:block}
+  .mob-ham{display:flex}
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  #content{padding:14px 16px}
+  header{padding:10px 14px}
+  .hbtn .hbtxt{display:none}
+  .btn-add .batxt{display:none}
+  .date-row{flex-direction:column}
 }
-@media(min-width:681px){
-  .sb-overlay{display:none!important}
-}
+@media(min-width:701px){.sb-mask{display:none!important}}
 </style>
 </head>
 <body>
 <div id="app">
-  <div class="sb-overlay" id="sb-ov" onclick="closeSidebar()"></div>
-  <aside id="sidebar">
-    <div class="logo">
-      <div class="logo-ico">🏢</div>
-      <div><div class="logo-name">Condo MA</div><div class="logo-sub">Management Agent</div></div>
+<div class="sb-mask" id="sbmask" onclick="closeSB()"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="logo">
+    <div class="logo-ico">🏢</div>
+    <div><div class="logo-name">Condo MA</div><div class="logo-tag">Management Portal</div></div>
+  </div>
+  <nav style="flex:1;overflow-y:auto;padding:8px">
+    <div class="nav-section">Overview</div>
+    <button class="nb on" data-view="dashboard"><span class="nb-l"><span class="nb-ico">⊞</span>Dashboard</span></button>
+    <div class="nav-section" style="margin-top:8px">Tasks</div>
+    <button class="nb" data-view="active"><span class="nb-l"><span class="nb-ico">📋</span>Active Tasks</span><span class="nc" id="nc-a">0</span></button>
+    <button class="nb" data-view="completed"><span class="nb-l"><span class="nb-ico">✅</span>Completed</span><span class="nc" id="nc-c">0</span></button>
+    <div class="nav-section" style="margin-top:8px">Management</div>
+    <button class="nb" data-view="contracts"><span class="nb-l"><span class="nb-ico">📄</span>Contracts</span><span class="nc red" id="nc-exp">0</span></button>
+    <button class="nb" data-view="defects"><span class="nb-l"><span class="nb-ico">🔧</span>Defects</span><span class="nc" id="nc-def">0</span></button>
+    <button class="nb" data-view="budget"><span class="nb-l"><span class="nb-ico">💰</span>Budget</span></button>
+    <div class="nav-section" style="margin-top:8px">Reports</div>
+    <button class="nb" data-view="reports"><span class="nb-l"><span class="nb-ico">📊</span>Statistics</span></button>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-kpi">⚠️ <span id="ss-ov" style="color:var(--rd)">0 overdue</span></div>
+    <div class="sb-kpi">⏰ <span id="ss-td">0 due today</span></div>
+    <div class="sb-kpi">✅ <span id="ss-rt">0% completion rate</span></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main id="main">
+  <header>
+    <button class="mob-ham" onclick="openSB()">☰</button>
+    <div class="search-box">
+      <span class="si">🔍</span>
+      <input id="srch" type="text" placeholder="Search tasks, contracts, defects…"/>
+      <button class="sx" id="sxbtn">×</button>
     </div>
-    <nav>
-      <button class="nb on" data-view="dashboard"><span class="nb-l">⊞ Dashboard</span></button>
-      <button class="nb" data-view="active"><span class="nb-l">📋 Active Tasks</span><span class="nc" id="nc-a">0</span></button>
-      <button class="nb" data-view="archive"><span class="nb-l">🗄 Archive</span><span class="nc" id="nc-d">0</span></button>
-      <button class="nb" data-view="stats"><span class="nb-l">📊 Statistics</span></button>
-    </nav>
-    <div class="sb-stats">
-      <div class="sb-stat-lbl">Quick Status</div>
-      <div class="sb-stat" style="color:var(--rd)">⚠️ <span id="ss-ov">0 overdue</span></div>
-      <div class="sb-stat">⏰ <span id="ss-td">0 due today</span></div>
-      <div class="sb-stat">✅ <span id="ss-rt">0% complete</span></div>
-    </div>
-  </aside>
-
-  <main id="main">
-    <header>
-      <button id="mob-menu" onclick="openSidebar()">☰</button>
-      <div class="sw">
-        <span class="si">🔍</span>
-        <input type="text" id="si" placeholder="Search tasks…"/>
-        <button class="sc" id="sc">×</button>
-      </div>
-      <button class="hb" id="ft-btn"><span>⚡</span><span class="hb-txt">Filters</span></button>
-      <button class="hb" id="pdf-btn"><span>📄</span><span class="hb-txt">Report</span></button>
-      <button class="btn-new" id="new-btn"><span>＋</span><span>New Task</span></button>
-    </header>
-
-    <div id="fbar">
-      <span class="fl">Category</span>
-      <div class="pills" id="cat-pills"></div>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <span class="fl">Sort</span>
-        <div class="pills" id="sort-pills">
-          <button class="pill on" data-sort="dueDate">Due Date</button>
-          <button class="pill" data-sort="created">Created</button>
-          <button class="pill" data-sort="category">Category</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="content">
-      <!-- DASHBOARD -->
-      <div class="page on" id="page-dashboard">
-        <div class="pg-title">Good morning, MA</div>
-        <div class="pg-sub" id="today-lbl"></div>
-        <div class="sg">
-          <div class="sc-card"><div class="sc-bg">📋</div><div class="sc-v" id="sv-tot" style="color:var(--ac)">0</div><div class="sc-l">Total</div></div>
-          <div class="sc-card"><div class="sc-bg">⏰</div><div class="sc-v" id="sv-act" style="color:var(--yw)">0</div><div class="sc-l">Active</div></div>
-          <div class="sc-card"><div class="sc-bg">⚠️</div><div class="sc-v" id="sv-ovd" style="color:var(--rd)">0</div><div class="sc-l">Overdue</div></div>
-          <div class="sc-card"><div class="sc-bg">✅</div><div class="sc-v" id="sv-don" style="color:var(--gn)">0</div><div class="sc-l">Done</div></div>
-        </div>
-        <div class="meter">
-          <div class="meter-h"><span>Completion Rate</span><span id="mpct">0%</span></div>
-          <div class="mtrack"><div class="mfill" id="mfill" style="width:0%"></div></div>
-        </div>
-        <div class="sh"><span class="sh-l">Urgent & Recent</span><button class="sh-r" onclick="setView('active')">View all →</button></div>
-        <div class="tl" id="dash-list"></div>
-      </div>
-
-      <!-- ACTIVE -->
-      <div class="page" id="page-active">
-        <div class="vh"><h2>Active Tasks</h2><p id="albl"></p></div>
-        <div class="tl" id="active-list"></div>
-      </div>
-
-      <!-- ARCHIVE -->
-      <div class="page" id="page-archive">
-        <div class="vh"><h2>Archived Tasks</h2><p id="dlbl"></p></div>
-        <div class="tl" id="archive-list"></div>
-      </div>
-
-      <!-- STATISTICS -->
-      <div class="page" id="page-stats">
-        <div class="pg-title">Statistics</div>
-        <div class="pg-sub" id="stats-sub"></div>
-        <div class="stats-grid">
-          <!-- KPIs -->
-          <div class="stat-block">
-            <h3>Key Metrics</h3>
-            <div id="kpi-list"></div>
-          </div>
-          <!-- By Category -->
-          <div class="stat-block">
-            <h3>Tasks by Category</h3>
-            <div id="cat-breakdown"></div>
-          </div>
-          <!-- Completion time -->
-          <div class="stat-block">
-            <h3>Completion Performance</h3>
-            <div id="perf-block"></div>
-          </div>
-          <!-- Recent completions -->
-          <div class="stat-block">
-            <h3>Recent Completions</h3>
-            <div id="recent-done"></div>
-          </div>
-        </div>
-        <!-- Full timeline -->
-        <div class="stat-block" style="margin-bottom:14px">
-          <h3>Completion Timeline</h3>
-          <div id="timeline" style="margin-top:4px"></div>
-        </div>
+    <button class="hbtn" id="ft-btn"><span>⚡</span><span class="hbtxt"> Filters</span></button>
+    <button class="hbtn" onclick="openReportModal()"><span>📄</span><span class="hbtxt"> Report</span></button>
+    <button class="btn-add" id="addbtn"><span>＋</span><span class="batxt"> New Task</span></button>
+  </header>
+  <div id="fbar">
+    <span class="fl">Category</span>
+    <div class="pills" id="cat-pills"></div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span class="fl">Sort</span>
+      <div class="pills" id="sort-pills">
+        <button class="pill on" data-sort="due">Due Date</button>
+        <button class="pill" data-sort="created">Created</button>
+        <button class="pill" data-sort="cat">Category</button>
+        <button class="pill" data-sort="priority">Priority</button>
       </div>
     </div>
-  </main>
+  </div>
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div class="page on" id="page-dashboard">
+      <div class="pg-h"><h1>Dashboard</h1><p id="dash-date"></p></div>
+      <div class="tiles" id="tiles"></div>
+      <div class="prog-card">
+        <div class="prog-head"><span class="prog-lbl">Overall Completion</span><span class="prog-pct" id="cpct">0%</span></div>
+        <div class="prog-track"><div class="prog-fill" id="cpctbar" style="width:0%;background:linear-gradient(90deg,var(--gn),#4ade80)"></div></div>
+        <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap" id="status-legend"></div>
+      </div>
+      <div class="grid-2" id="dash-grid">
+        <div>
+          <div class="sec-h"><span class="sec-hl">🔴 Urgent / Overdue</span><button class="sec-hr" onclick="setView('active')">All →</button></div>
+          <div class="tl" id="dash-urgent"></div>
+        </div>
+        <div>
+          <div class="sec-h"><span class="sec-hl">📅 Due This Week</span><button class="sec-hr" onclick="setView('active')">All →</button></div>
+          <div class="tl" id="dash-week"></div>
+        </div>
+      </div>
+      <div class="sec-h" style="margin-top:4px"><span class="sec-hl">⚠️ Expiring Contracts</span><button class="sec-hr" onclick="setView('contracts')">All →</button></div>
+      <div id="dash-contracts"></div>
+      <div class="sec-h" style="margin-top:14px"><span class="sec-hl">🔧 Open Defects</span><button class="sec-hr" onclick="setView('defects')">All →</button></div>
+      <div id="dash-defects"></div>
+    </div>
+
+    <!-- ACTIVE TASKS -->
+    <div class="page" id="page-active">
+      <div class="pg-h"><h1>Active Tasks</h1><p id="active-sub"></p></div>
+      <div class="tl" id="active-list"></div>
+    </div>
+
+    <!-- COMPLETED TASKS -->
+    <div class="page" id="page-completed">
+      <div class="pg-h"><h1>Completed Tasks</h1><p id="completed-sub"></p></div>
+      <div class="tl" id="completed-list"></div>
+    </div>
+
+    <!-- CONTRACTS -->
+    <div class="page" id="page-contracts">
+      <div class="pg-h" style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><h1>Contract Summary</h1><p>MCST active contracts — expiring within 3 months highlighted</p></div>
+        <button class="btn-add" onclick="openContractModal()">＋ Add Contract</button>
+      </div>
+      <div id="contracts-list"></div>
+    </div>
+
+    <!-- DEFECTS -->
+    <div class="page" id="page-defects">
+      <div class="pg-h" style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><h1>Defects Log</h1><p>Record and track defects through to resolution</p></div>
+        <button class="btn-add" onclick="openDefectModal()">＋ Log Defect</button>
+      </div>
+      <div id="defects-list"></div>
+    </div>
+
+    <!-- BUDGET -->
+    <div class="page" id="page-budget">
+      <div class="pg-h" style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><h1>AGM Budget Planner</h1><p>Plan and track budget vs actuals — not a substitute for audited accounts</p></div>
+        <button class="btn-add" onclick="openBudgetModal()">＋ Add Item</button>
+      </div>
+      <div id="budget-content"></div>
+    </div>
+
+    <!-- STATISTICS -->
+    <div class="page" id="page-reports">
+      <div class="pg-h"><h1>Statistics</h1><p id="stats-date"></p></div>
+      <div class="grid-3" id="stats-kpis"></div>
+      <div class="grid-2">
+        <div class="card"><div class="card-title">By Category</div><div id="cat-chart"></div></div>
+        <div class="card"><div class="card-title">Completion Performance</div><div id="perf-chart"></div></div>
+      </div>
+      <div class="card" style="margin-bottom:16px"><div class="card-title">Completion Timeline</div><div id="timeline-list"></div></div>
+    </div>
+
+  </div>
+</main>
 </div>
 
-<!-- MODAL -->
+<!-- TASK MODAL -->
 <div id="ov">
   <div class="modal">
-    <div class="mh">
-      <div><h3 id="m-head">New Task</h3><p>Fill in task details for the management log</p></div>
-      <button class="mx" id="mx">×</button>
-    </div>
-    <div class="fg">
+    <div class="mhdr"><div><h3 id="mhd">New Task</h3><p>Fill in task details</p></div><button class="mclose" id="mcx">×</button></div>
+    <div class="fgrp">
       <div><label class="flbl">Category</label><div class="cpills" id="cpills"></div></div>
-      <div><label class="flbl">Task Title *</label><input type="text" class="fi" id="mt" placeholder="Describe the task briefly…"/></div>
-      <div><label class="flbl">Notes / Details</label><textarea class="fi" id="md" rows="3" placeholder="Additional notes, instructions, or references…"></textarea></div>
-      <div><label class="flbl">Expected Completion</label><input type="date" class="fi" id="mdue" style="color-scheme:dark"/></div>
+      <div class="fi-row">
+        <div style="flex:2"><label class="flbl">Task Title *</label><input type="text" class="fi" id="mt" placeholder="Task title…"/></div>
+        <div style="flex:1"><label class="flbl">Priority</label>
+          <select class="fi" id="mpri"><option value="normal">Normal</option><option value="high">High</option><option value="critical">Critical</option></select>
+        </div>
+      </div>
+      <div><label class="flbl">Description / Notes</label><textarea class="fi" id="mdesc" rows="3" placeholder="Details, instructions, references…"></textarea></div>
+      <div class="fi-row">
+        <div style="flex:1"><label class="flbl">Due Date</label><input type="date" class="fi" id="mdue" style="color-scheme:dark"/></div>
+        <div style="flex:1"><label class="flbl">Assigned To</label><input type="text" class="fi" id="massign" placeholder="Name or team…"/></div>
+      </div>
     </div>
-    <div class="mf">
-      <button class="bcancel" id="mcancel">Cancel</button>
-      <button class="bsave" id="msave" disabled>Add Task</button>
+    <div class="mfooter"><button class="bcancel" id="mcan">Cancel</button><button class="bsave" id="msave" disabled>Add Task</button></div>
+  </div>
+</div>
+
+<!-- REPORT MODAL -->
+<div id="rov">
+  <div class="modal wide" style="display:none" id="rmodal">
+    <div class="mhdr"><div><h3>Generate Report</h3><p>Select report type and parameters</p></div><button class="mclose" id="rcx">×</button></div>
+    <div class="report-step">
+      <h4>1. Report Type</h4>
+      <div class="r-opts" id="rtype-opts">
+        <button class="r-opt on" data-val="tasks">Organised Tasks</button>
+        <button class="r-opt" data-val="contracts">Contract Summary</button>
+        <button class="r-opt" data-val="utilities">Utilities Report</button>
+      </div>
     </div>
+    <div class="report-step" id="rtask-opts">
+      <h4>2. Task Filter</h4>
+      <div class="r-opts" id="rfilter-opts">
+        <button class="r-opt on" data-val="all">All Tasks</button>
+        <button class="r-opt" data-val="active">In Progress</button>
+        <button class="r-opt" data-val="completed">Completed</button>
+      </div>
+    </div>
+    <div class="report-step" id="rdate-step">
+      <h4>3. Timeframe</h4>
+      <div class="date-row">
+        <select id="rmonth" class="fi">
+          <option value="">All Months</option>
+          <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+          <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+          <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+          <option value="9">October</option><option value="10">November</option><option value="11">December</option>
+        </select>
+        <select id="ryear" class="fi"></select>
+      </div>
+    </div>
+    <div class="report-step">
+      <h4 id="rstep4lbl">4. Utilities Category</h4>
+      <div class="r-opts" id="rutil-opts" style="display:none">
+        <button class="r-opt on" data-val="all">All Utilities</button>
+        <button class="r-opt" data-val="electric">Electricity</button>
+        <button class="r-opt" data-val="water">Water</button>
+        <button class="r-opt" data-val="gas">Gas</button>
+        <button class="r-opt" data-val="internet">Internet / Comms</button>
+      </div>
+    </div>
+    <div class="mfooter"><button class="bcancel" id="rcan">Cancel</button><button class="bprimary" id="rgen">📄 Generate Report</button></div>
+  </div>
+</div>
+
+<!-- CONTRACT MODAL -->
+<div id="cov">
+  <div class="modal" style="display:none" id="cmodal">
+    <div class="mhdr"><div><h3 id="chd">Add Contract</h3><p>Enter contractor details</p></div><button class="mclose" id="ccx">×</button></div>
+    <div class="fgrp">
+      <div><label class="flbl">Company Name *</label><input type="text" class="fi" id="cname" placeholder="Contractor company…"/></div>
+      <div class="fi-row">
+        <div style="flex:1"><label class="flbl">Type of Work</label><input type="text" class="fi" id="cwork" placeholder="e.g. Cleaning, Security…"/></div>
+        <div style="flex:1"><label class="flbl">Contact Person</label><input type="text" class="fi" id="ccont" placeholder="Name…"/></div>
+      </div>
+      <div class="fi-row">
+        <div style="flex:1"><label class="flbl">Contract Sum (SGD)</label><input type="number" class="fi" id="csum" placeholder="0.00"/></div>
+        <div style="flex:1"><label class="flbl">Payment</label>
+          <select class="fi" id="cpay"><option>Monthly</option><option>Quarterly</option><option>Annually</option><option>Lump Sum</option></select>
+        </div>
+      </div>
+      <div class="fi-row">
+        <div style="flex:1"><label class="flbl">Start Date</label><input type="date" class="fi" id="cstart" style="color-scheme:dark"/></div>
+        <div style="flex:1"><label class="flbl">End Date</label><input type="date" class="fi" id="cend" style="color-scheme:dark"/></div>
+      </div>
+      <div><label class="flbl">Notes</label><textarea class="fi" id="cnotes" rows="2" placeholder="Scope, remarks…"></textarea></div>
+    </div>
+    <div class="mfooter"><button class="bcancel" id="ccan">Cancel</button><button class="bsave" id="csave" disabled>Save Contract</button></div>
+  </div>
+</div>
+
+<!-- DEFECT MODAL -->
+<div id="dov">
+  <div class="modal" style="display:none" id="dmodal">
+    <div class="mhdr"><div><h3 id="dhd">Log Defect</h3><p>Record defect details and status</p></div><button class="mclose" id="dcx">×</button></div>
+    <div class="fgrp">
+      <div><label class="flbl">Defect Title *</label><input type="text" class="fi" id="dtitle" placeholder="Brief description…"/></div>
+      <div class="fi-row">
+        <div style="flex:1"><label class="flbl">Location</label><input type="text" class="fi" id="dloc" placeholder="e.g. Block A, Level 5…"/></div>
+        <div style="flex:1"><label class="flbl">Severity</label>
+          <select class="fi" id="dsev"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option></select>
+        </div>
+      </div>
+      <div><label class="flbl">Description</label><textarea class="fi" id="ddesc" rows="2" placeholder="Defect details…"></textarea></div>
+      <div class="fi-row">
+        <div style="flex:1"><label class="flbl">Reported Date</label><input type="date" class="fi" id="drep" style="color-scheme:dark"/></div>
+        <div style="flex:1"><label class="flbl">Target Rectification</label><input type="date" class="fi" id="dtgt" style="color-scheme:dark"/></div>
+      </div>
+      <div class="fi-row">
+        <div style="flex:1"><label class="flbl">Assigned To</label><input type="text" class="fi" id="dassign" placeholder="Contractor/team…"/></div>
+        <div style="flex:1"><label class="flbl">Status</label>
+          <select class="fi" id="dstat"><option value="open">Open</option><option value="inprogress">In Progress</option><option value="pending">Pending</option><option value="resolved">Resolved</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="mfooter"><button class="bcancel" id="dcan">Cancel</button><button class="bsave" id="dsave" disabled>Save Defect</button></div>
+  </div>
+</div>
+
+<!-- BUDGET MODAL -->
+<div id="bov">
+  <div class="modal" style="display:none" id="bmodal">
+    <div class="mhdr"><div><h3 id="bhd">Add Budget Item</h3><p>AGM budget planning</p></div><button class="mclose" id="bcx">×</button></div>
+    <div class="fgrp">
+      <div><label class="flbl">Item Description *</label><input type="text" class="fi" id="bitem" placeholder="Budget line item…"/></div>
+      <div class="fi-row">
+        <div style="flex:1"><label class="flbl">Category</label>
+          <select class="fi" id="bcat"><option>Maintenance</option><option>Security</option><option>Cleaning</option><option>Utilities</option><option>Admin</option><option>Landscaping</option><option>Insurance</option><option>Other</option></select>
+        </div>
+        <div style="flex:1"><label class="flbl">Year</label><input type="number" class="fi" id="byear" placeholder="2025"/></div>
+      </div>
+      <div class="fi-row">
+        <div style="flex:1"><label class="flbl">Budgeted (SGD)</label><input type="number" class="fi" id="bbud" placeholder="0.00"/></div>
+        <div style="flex:1"><label class="flbl">Actual (SGD)</label><input type="number" class="fi" id="bact" placeholder="0.00"/></div>
+      </div>
+      <div><label class="flbl">Notes</label><textarea class="fi" id="bnotes" rows="2" placeholder="Remarks…"></textarea></div>
+    </div>
+    <div class="mfooter"><button class="bcancel" id="bcan">Cancel</button><button class="bsave" id="bsave" disabled>Save Item</button></div>
   </div>
 </div>
 
 <script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
 const CATS=[
   {id:'maintenance',label:'Maintenance',color:'#4f8ef7'},
   {id:'security',label:'Security',color:'#a78bfa'},
@@ -342,455 +554,784 @@ const CATS=[
 ]
 const gc=id=>CATS.find(c=>c.id===id)||CATS[0]
 
-function tStr(){return new Date().toISOString().split('T')[0]}
-function addD(base,n){const d=new Date(base+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().split('T')[0]}
-function diffD(s){if(!s)return null;const n=new Date();n.setHours(0,0,0,0);const d=new Date(s+'T12:00:00');return Math.round((d-n)/86400000)}
-function fmtD(s){if(!s)return'—';return new Date(s+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}
-function fmtShort(s){if(!s)return'—';return new Date(s+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}
-function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+const DEF_SEV={low:{c:'var(--gn)',bg:'var(--gn-d)',l:'Low'},medium:{c:'var(--yw)',bg:'var(--yw-d)',l:'Medium'},high:{c:'var(--or)',bg:'var(--or-d)',l:'High'},critical:{c:'var(--rd)',bg:'var(--rd-d)',l:'Critical'}}
+const DEF_STATUS={open:{c:'var(--rd)',bg:'var(--rd-d)',l:'Open'},inprogress:{c:'var(--or)',bg:'var(--or-d)',l:'In Progress'},pending:{c:'var(--yw)',bg:'var(--yw-d)',l:'Pending'},resolved:{c:'var(--gn)',bg:'var(--gn-d)',l:'Resolved'}}
+const PRI={normal:{c:'var(--tx3)',l:'Normal'},high:{c:'var(--or)',l:'High'},critical:{c:'var(--rd)',l:'Critical'}}
 
-function urg(s){
-  if(!s)return{lv:'none',lb:'No Due Date',c:'var(--tx3)',bg:'rgba(255,255,255,.05)'}
+function ts(){return new Date().toISOString().split('T')[0]}
+function addD(b,n){const d=new Date(b+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().split('T')[0]}
+function diffD(s){if(!s)return null;const n=new Date();n.setHours(0,0,0,0);return Math.round((new Date(s+'T12:00:00')-n)/86400000)}
+function fmtD(s,short=false){if(!s)return'—';const opts=short?{day:'2-digit',month:'short'}:{day:'2-digit',month:'short',year:'numeric'};return new Date(s+'T12:00:00').toLocaleDateString('en-GB',opts)}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmtMoney(n){return'S$'+Number(n||0).toLocaleString('en-SG',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+
+function urgency(s){
+  if(!s)return{lv:'none',lb:'No Due Date',c:'var(--tx3)',bg:'rgba(255,255,255,.06)'}
   const d=diffD(s)
-  if(d<0)return{lv:'ov',lb:'Overdue',c:'var(--rd)',bg:'var(--rd-d)'}
+  if(d<0)return{lv:'ov',lb:'Overdue '+Math.abs(d)+'d',c:'var(--rd)',bg:'var(--rd-d)'}
   if(d===0)return{lv:'td',lb:'Due Today',c:'var(--rd)',bg:'var(--rd-d)'}
   if(d===1)return{lv:'sn',lb:'Due Tomorrow',c:'var(--or)',bg:'var(--or-d)'}
   if(d<=3)return{lv:'sn',lb:'Due in '+d+'d',c:'var(--yw)',bg:'var(--yw-d)'}
   if(d<=7)return{lv:'up',lb:'Due in '+d+'d',c:'var(--yw)',bg:'var(--yw-d)'}
-  return{lv:'ok',lb:'Due in '+d+'d',c:'var(--gn)',bg:'var(--gn-d)'}
+  return{lv:'ok',lb:'Due '+fmtD(s,true),c:'var(--gn)',bg:'var(--gn-d)'}
 }
 
-const T=tStr()
-const SEED=[
-  {id:'1',category:'maintenance',title:'Inspect rooftop waterproofing',description:'Check all seals and drainage points on Level 22 rooftop. Look for cracks or water pooling.',dueDate:addD(T,-1),completed:false,createdAt:addD(T,-3),completedAt:null},
-  {id:'2',category:'security',title:'CCTV camera servicing – Block A',description:'Schedule technician to clean lenses and test recording for all 14 cameras in Block A lobby and carpark.',dueDate:addD(T,1),completed:false,createdAt:addD(T,-2),completedAt:null},
-  {id:'3',category:'cleaning',title:'Deep clean gym & pool area',description:'Full sanitisation of gym equipment, pool deck, and changing rooms. Use approved chemical suppliers only.',dueDate:T,completed:false,createdAt:addD(T,-1),completedAt:null},
-  {id:'4',category:'admin',title:'Prepare AGM agenda & minutes draft',description:'Draft agenda for the Annual General Meeting. Include financial summary, maintenance updates, and Q&A session.',dueDate:addD(T,5),completed:false,createdAt:addD(T,-5),completedAt:null},
-  {id:'5',category:'utilities',title:'Check generator fuel levels',description:'Inspect backup generator fuel. Minimum 80% level required. Top up if below threshold.',dueDate:addD(T,3),completed:false,createdAt:addD(T,-1),completedAt:null},
-  {id:'6',category:'landscaping',title:'Trim hedges – North entrance',description:'Monthly hedge trimming along north driveway. Coordinate with gardening contractor Wong & Sons.',dueDate:addD(T,7),completed:false,createdAt:T,completedAt:null},
-  {id:'7',category:'inspection',title:'Fire extinguisher inspection – Level 1-5',description:'Annual fire safety inspection for all extinguishers on floors 1 through 5. Document serial numbers and expiry.',dueDate:addD(T,14),completed:false,createdAt:T,completedAt:null},
-  {id:'8',category:'resident',title:'Unit 12-04 – Water leak report',description:'Resident reported water seepage from ceiling. Arrange plumber inspection and coordinate with unit above.',dueDate:addD(T,2),completed:false,createdAt:T,completedAt:null},
-  {id:'9',category:'maintenance',title:'Replace lobby lightbulbs – Block B',description:'Several LED panels in Block B lobby are flickering. Replace with Philips 18W panels.',dueDate:addD(T,-3),completed:true,createdAt:addD(T,-10),completedAt:addD(T,-3)},
-  {id:'10',category:'cleaning',title:'Carpark pressure washing',description:'Monthly pressure wash of all carpark levels. Completed ahead of schedule.',dueDate:addD(T,-5),completed:true,createdAt:addD(T,-12),completedAt:addD(T,-6)},
-  {id:'11',category:'admin',title:'Renew pest control contract',description:'Annual pest control contract with BioShield renewed for another year.',dueDate:addD(T,-8),completed:true,createdAt:addD(T,-20),completedAt:addD(T,-9)},
-  {id:'12',category:'security',title:'Update access card database',description:'Removed 5 deactivated residents from the master access list. New residents onboarded.',dueDate:addD(T,-2),completed:true,createdAt:addD(T,-7),completedAt:addD(T,-2)},
+const T=ts()
+// Seed data
+const SEED_TASKS=[
+  {id:'t1',category:'maintenance',title:'Inspect rooftop waterproofing',description:'Check seals and drainage on Level 22 rooftop. Look for cracks or pooling.',dueDate:addD(T,-1),priority:'high',assignedTo:'Tan Wei',completed:false,createdAt:addD(T,-4),completedAt:null},
+  {id:'t2',category:'security',title:'CCTV camera servicing – Block A',description:'Clean lenses, test recording for 14 cameras in Block A lobby and carpark.',dueDate:addD(T,1),priority:'normal',assignedTo:'SecurePro Svc',completed:false,createdAt:addD(T,-2),completedAt:null},
+  {id:'t3',category:'cleaning',title:'Deep clean gym & pool area',description:'Full sanitisation of equipment, pool deck, and changing rooms.',dueDate:T,priority:'high',assignedTo:'CleanCo',completed:false,createdAt:addD(T,-1),completedAt:null},
+  {id:'t4',category:'admin',title:'Prepare AGM agenda & minutes draft',description:'Include financial summary, maintenance updates, and Q&A session.',dueDate:addD(T,5),priority:'normal',assignedTo:'MA Office',completed:false,createdAt:addD(T,-5),completedAt:null},
+  {id:'t5',category:'utilities',title:'Check generator fuel levels',description:'Minimum 80% required. Top up if below threshold.',dueDate:addD(T,3),priority:'critical',assignedTo:'M&E Team',completed:false,createdAt:addD(T,-1),completedAt:null},
+  {id:'t6',category:'landscaping',title:'Trim hedges – North entrance',description:'Monthly trimming. Coordinate with contractor Wong & Sons.',dueDate:addD(T,7),priority:'normal',assignedTo:'Wong & Sons',completed:false,createdAt:T,completedAt:null},
+  {id:'t7',category:'inspection',title:'Fire extinguisher inspection L1-L5',description:'Annual inspection. Document serial numbers and expiry dates.',dueDate:addD(T,14),priority:'high',assignedTo:'FireSafe Pte Ltd',completed:false,createdAt:T,completedAt:null},
+  {id:'t8',category:'resident',title:'Unit 12-04 – Water leak report',description:'Seepage from ceiling. Arrange plumber and coordinate with unit above.',dueDate:addD(T,2),priority:'critical',assignedTo:'Plumber On Call',completed:false,createdAt:T,completedAt:null},
+  {id:'t9',category:'maintenance',title:'Replace lobby lightbulbs – Block B',description:'Flickering LED panels. Replace with Philips 18W panels.',dueDate:addD(T,-3),priority:'normal',assignedTo:'Tan Wei',completed:true,createdAt:addD(T,-10),completedAt:addD(T,-3)},
+  {id:'t10',category:'cleaning',title:'Carpark pressure washing',description:'Monthly pressure wash of all levels.',dueDate:addD(T,-5),priority:'normal',assignedTo:'CleanCo',completed:true,createdAt:addD(T,-12),completedAt:addD(T,-6)},
+  {id:'t11',category:'admin',title:'Renew pest control contract',description:'Annual contract with BioShield renewed.',dueDate:addD(T,-8),priority:'normal',assignedTo:'MA Office',completed:true,createdAt:addD(T,-20),completedAt:addD(T,-9)},
+  {id:'t12',category:'security',title:'Update access card database',description:'Removed 5 deactivated residents, onboarded new ones.',dueDate:addD(T,-2),priority:'normal',assignedTo:'SecurePro Svc',completed:true,createdAt:addD(T,-7),completedAt:addD(T,-2)},
+]
+const SEED_CONTRACTS=[
+  {id:'c1',name:'CleanCo Services Pte Ltd',work:'General Cleaning',contact:'Mr Lim Ah Kow',sum:48000,payment:'Monthly',start:addD(T,-365),end:addD(T,60),notes:'Weekly cleaning of all common areas'},
+  {id:'c2',name:'SecurePro Security',work:'Security Services',contact:'Ms Sarah Tan',sum:120000,payment:'Monthly',start:addD(T,-200),end:addD(T,80),notes:'24/7 guardhouse and patrol'},
+  {id:'c3',name:'Wong & Sons Landscape',work:'Landscaping',contact:'Wong Jun Wei',sum:18000,payment:'Monthly',start:addD(T,-180),end:addD(T,180),notes:'Monthly grass cutting, trimming'},
+  {id:'c4',name:'FireSafe Pte Ltd',work:'Fire Safety',contact:'David Ng',sum:5500,payment:'Annually',start:addD(T,-400),end:addD(T,-30),notes:'Annual fire safety inspection — EXPIRED'},
+  {id:'c5',name:'BioShield Pest Control',work:'Pest Control',contact:'James Ho',sum:4200,payment:'Quarterly',start:addD(T,-10),end:addD(T,360),notes:'Quarterly fumigation and monitoring'},
+]
+const SEED_DEFECTS=[
+  {id:'d1',title:'Water seepage – Unit 08-12 ceiling',location:'Block B, Level 8',severity:'high',description:'Staining and active drip. Waterproofing failure suspected.',reported:addD(T,-14),target:addD(T,-3),assignedTo:'Waterproof Specialist',status:'inprogress'},
+  {id:'d2',title:'Spalling concrete – Carpark pillar P3',location:'Basement Carpark',severity:'critical',description:'Exposed rebar. Safety hazard, cordon off area.',reported:addD(T,-30),target:addD(T,5),assignedTo:'Structural Contractor',status:'open'},
+  {id:'d3',title:'Lift B1 door sensor fault',location:'Block B, Level 1',severity:'medium',description:'Door closing too fast intermittently.',reported:addD(T,-7),target:addD(T,7),assignedTo:'Schindler',status:'pending'},
+  {id:'d4',title:'Cracked floor tile – Pool deck',location:'Pool Area',severity:'low',description:'Hairline crack, no trip hazard yet. Monitor.',reported:addD(T,-60),target:addD(T,-40),assignedTo:'Tiling Contractor',status:'resolved'},
+]
+const SEED_BUDGET=[
+  {id:'b1',item:'General Cleaning Contract',category:'Cleaning',year:2025,budgeted:48000,actual:48000,notes:''},
+  {id:'b2',item:'Security Services Contract',category:'Security',year:2025,budgeted:120000,actual:120000,notes:''},
+  {id:'b3',item:'Landscaping Contract',category:'Landscaping',year:2025,budgeted:18000,actual:18000,notes:''},
+  {id:'b4',item:'Fire Safety Inspection',category:'Maintenance',year:2025,budgeted:6000,actual:5500,notes:'Under budget'},
+  {id:'b5',item:'Lift Maintenance',category:'Maintenance',year:2025,budgeted:35000,actual:28000,notes:'Q3 work deferred'},
+  {id:'b6',item:'Pest Control',category:'Maintenance',year:2025,budgeted:4500,actual:4200,notes:''},
+  {id:'b7',item:'Utilities – Electricity',category:'Utilities',year:2025,budgeted:180000,actual:165000,notes:''},
+  {id:'b8',item:'Utilities – Water',category:'Utilities',year:2025,budgeted:48000,actual:51200,notes:'Over budget — investigate'},
+  {id:'b9',item:'Admin & Management Fee',category:'Admin',year:2025,budgeted:60000,actual:60000,notes:''},
 ]
 
-let tasks=[],view='dashboard',fCat='all',fSort='dueDate',fQ='',editId=null,selCat='maintenance'
-try{const s=localStorage.getItem('cma2');tasks=s?JSON.parse(s):JSON.parse(JSON.stringify(SEED))}catch{tasks=JSON.parse(JSON.stringify(SEED))}
+function loadData(){
+  try{
+    return{
+      tasks:JSON.parse(localStorage.getItem('cma3_tasks')||'null')||JSON.parse(JSON.stringify(SEED_TASKS)),
+      contracts:JSON.parse(localStorage.getItem('cma3_contracts')||'null')||JSON.parse(JSON.stringify(SEED_CONTRACTS)),
+      defects:JSON.parse(localStorage.getItem('cma3_defects')||'null')||JSON.parse(JSON.stringify(SEED_DEFECTS)),
+      budget:JSON.parse(localStorage.getItem('cma3_budget')||'null')||JSON.parse(JSON.stringify(SEED_BUDGET)),
+    }
+  }catch{return{tasks:JSON.parse(JSON.stringify(SEED_TASKS)),contracts:JSON.parse(JSON.stringify(SEED_CONTRACTS)),defects:JSON.parse(JSON.stringify(SEED_DEFECTS)),budget:JSON.parse(JSON.stringify(SEED_BUDGET))}}
+}
+let {tasks,contracts,defects,budget}=loadData()
+function save(){
+  try{
+    localStorage.setItem('cma3_tasks',JSON.stringify(tasks))
+    localStorage.setItem('cma3_contracts',JSON.stringify(contracts))
+    localStorage.setItem('cma3_defects',JSON.stringify(defects))
+    localStorage.setItem('cma3_budget',JSON.stringify(budget))
+  }catch{}
+}
 
-function save(){try{localStorage.setItem('cma2',JSON.stringify(tasks))}catch{}}
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
-const actv=()=>tasks.filter(t=>!t.completed)
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let view='dashboard', fCat='all', fSort='due', fQ='', selCat='maintenance'
+let editTaskId=null, editContractId=null, editDefectId=null, editBudgetId=null
+let rType='tasks', rFilter='all', rMonth='', rYear='', rUtil='all'
+
+const active=()=>tasks.filter(t=>!t.completed)
 const done=()=>tasks.filter(t=>t.completed)
-const ovd=()=>actv().filter(t=>t.dueDate&&diffD(t.dueDate)<0)
-const tod=()=>actv().filter(t=>t.dueDate&&diffD(t.dueDate)===0)
+const overdue=()=>active().filter(t=>t.dueDate&&diffD(t.dueDate)<0)
+const dueToday=()=>active().filter(t=>t.dueDate&&diffD(t.dueDate)===0)
+const expiringContracts=()=>contracts.filter(c=>{const d=diffD(c.end);return d!==null&&d<=90})
 
-function applyF(pool){
+function filterTasks(pool){
   const q=fQ.toLowerCase().trim()
   return pool.filter(t=>{
     if(q){
-      const inTitle=t.title.toLowerCase().includes(q)
-      const inDesc=(t.description||'').toLowerCase().includes(q)
-      const inCat=gc(t.category).label.toLowerCase().includes(q)
-      if(!inTitle&&!inDesc&&!inCat)return false
+      if(!t.title.toLowerCase().includes(q)&&!(t.description||'').toLowerCase().includes(q)&&!gc(t.category).label.toLowerCase().includes(q)&&!(t.assignedTo||'').toLowerCase().includes(q))return false
     }
     if(fCat!=='all'&&t.category!==fCat)return false
     return true
   }).sort((a,b)=>{
-    if(fSort==='dueDate'){if(!a.dueDate)return 1;if(!b.dueDate)return-1;return a.dueDate.localeCompare(b.dueDate)}
-    if(fSort==='category')return a.category.localeCompare(b.category)
+    if(fSort==='due'){if(!a.dueDate)return 1;if(!b.dueDate)return-1;return a.dueDate.localeCompare(b.dueDate)}
+    if(fSort==='cat')return a.category.localeCompare(b.category)
+    if(fSort==='priority'){const po={critical:0,high:1,normal:2};return(po[a.priority]??2)-(po[b.priority]??2)}
     return b.createdAt.localeCompare(a.createdAt)
   })
 }
 
-function ubHtml(t){
+// ═══════════════════════════════════════════
+// HTML GENERATORS
+// ═══════════════════════════════════════════
+function ubadgeHtml(t){
   if(t.completed)return`<span class="ubadge" style="color:var(--gn);background:var(--gn-d)"><span class="udot" style="background:var(--gn)"></span>Done</span>`
-  const u=urg(t.dueDate)
+  const u=urgency(t.dueDate)
   return`<span class="ubadge" style="color:${u.c};background:${u.bg}"><span class="udot" style="background:${u.c}"></span>${u.lb}</span>`
 }
 
-function cardHtml(t){
+function taskCardHtml(t,minimal=false){
   const cat=gc(t.category)
-  const ds=t.dueDate?`<span class="td">📅 ${fmtD(t.dueDate)}</span>`:''
-  const cs=t.completedAt?`<span class="td" style="color:var(--gn)">✓ ${fmtShort(t.completedAt)}</span>`:''
+  const pri=PRI[t.priority||'normal']
+  const du=t.dueDate?`<span class="tmeta">📅 ${fmtD(t.dueDate)}</span>`:''
+  const co=t.completedAt?`<span class="tmeta" style="color:var(--gn)">✓ ${fmtD(t.completedAt,true)}</span>`:''
+  const as=t.assignedTo?`<span class="tmeta">👤 ${esc(t.assignedTo)}</span>`:''
+  const days=!t.completed&&t.createdAt&&t.dueDate?`<span class="tmeta">#${t.id.slice(-3)}</span>`:''
   const acts=t.completed
-    ?`<button class="ab" onclick="restoreTask('${t.id}')">↩ Restore</button>`
-    :`<button class="ab" onclick="openEdit('${t.id}')" title="Edit">✏️</button><button class="adone" onclick="completeTask('${t.id}')">✓ Done</button>`
+    ?`<button class="ab restore" onclick="restoreTask('${t.id}')">↩ Restore</button>`
+    :`<button class="ab" onclick="openTaskModal('${t.id}')">✏️</button><button class="ab primary" onclick="completeTask('${t.id}')">✓ Done</button>`
   return`<div class="tc">
-    <div class="tc-accent" style="background:${t.completed?'var(--gn)':cat.color}"></div>
-    <div class="tc-top">
-      <div class="tc-badges">
-        <span class="cbadge" style="color:${cat.color};background:${cat.color}18">${cat.label}</span>
-        ${ubHtml(t)}
+    <div class="tc-bar" style="background:${t.completed?'var(--gn)':cat.color}"></div>
+    <div class="tc-inner">
+      <div class="tc-top">
+        <div class="tc-badges">
+          <span class="badge" style="color:${cat.color};background:${cat.color}18">${cat.label}</span>
+          ${t.priority!=='normal'?`<span class="badge" style="color:${pri.c};background:${pri.c}18">${pri.l}</span>`:''}
+          ${ubadgeHtml(t)}
+        </div>
       </div>
       <div class="tc-title${t.completed?' done':''}">${esc(t.title)}</div>
-      ${t.description?`<div class="tc-desc${t.completed?' done':''}">${esc(t.description)}</div>`:''}
+      ${!minimal&&t.description?`<div class="tc-desc${t.completed?' done':''}">${esc(t.description)}</div>`:''}
     </div>
     <div class="tc-foot">
-      <div class="tc-meta">${ds}${cs}<span class="tid">#${t.id.slice(-4)}</span></div>
-      <div class="tacts">${acts}<button class="ab del" onclick="delTask('${t.id}')" title="Delete">🗑️</button></div>
+      <div class="tc-meta">${du}${co}${as}${days}</div>
+      <div class="tacts">${acts}<button class="ab danger" onclick="delTask('${t.id}')">🗑️</button></div>
     </div>
   </div>`
 }
 
-function renderStats(){
-  const a=actv(),d=done(),all=tasks
-  // KPIs
-  const avgDays=d.filter(t=>t.completedAt&&t.createdAt).map(t=>{
-    const created=new Date(t.createdAt+'T12:00:00')
-    const comp=new Date(t.completedAt+'T12:00:00')
-    return Math.max(0,Math.round((comp-created)/86400000))
+function contractRowHtml(c){
+  const d=diffD(c.end)
+  const exp=d!==null&&d<0
+  const expiring=d!==null&&d>=0&&d<=90
+  let badge='',cls='contract-row'
+  if(exp){badge=`<span class="expiry-badge" style="color:var(--rd);background:var(--rd-d)">EXPIRED</span>`;cls+=' expired'}
+  else if(expiring){badge=`<span class="expiry-badge" style="color:var(--yw);background:var(--yw-d)">Expires in ${d}d</span>`;cls+=' expiring'}
+  const dotC=exp?'var(--rd)':expiring?'var(--yw)':'var(--gn)'
+  return`<div class="${cls}">
+    <div class="cr-dot" style="background:${dotC}"></div>
+    <div class="cr-main">
+      <div class="cr-name">${esc(c.name)} ${badge}</div>
+      <div class="cr-sub">${esc(c.work)}${c.contact?' · '+esc(c.contact):''}</div>
+    </div>
+    <div class="cr-col" style="min-width:100px">
+      <div class="cr-val">${fmtMoney(c.sum)}</div>
+      <div class="cr-lbl">${c.payment||''}</div>
+    </div>
+    <div class="cr-col" style="min-width:110px">
+      <div class="cr-val" style="font-size:11px">${fmtD(c.start,true)} – ${fmtD(c.end,true)}</div>
+      <div class="cr-lbl">Contract period</div>
+    </div>
+    <div class="tacts">
+      <button class="ab" onclick="openContractModal('${c.id}')">✏️</button>
+      <button class="ab danger" onclick="delContract('${c.id}')">🗑️</button>
+    </div>
+  </div>`
+}
+
+function defectRowHtml(d){
+  const sev=DEF_SEV[d.severity||'low']
+  const stat=DEF_STATUS[d.status||'open']
+  const pct={open:10,inprogress:50,pending:70,resolved:100}[d.status||'open']
+  return`<div class="defect-row">
+    <div class="dr-top">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;flex-wrap:wrap">
+          <span class="dr-status" style="color:${sev.c};background:${sev.bg}">${sev.l}</span>
+          <span class="dr-status" style="color:${stat.c};background:${stat.bg}">${stat.l}</span>
+          ${d.location?`<span style="font-size:11px;color:var(--tx3)">📍 ${esc(d.location)}</span>`:''}
+        </div>
+        <div style="font-size:14px;font-weight:600">${esc(d.title)}</div>
+        ${d.description?`<div style="font-size:12px;color:var(--tx2);margin-top:2px">${esc(d.description)}</div>`:''}
+      </div>
+      <div class="tacts">
+        <button class="ab" onclick="openDefectModal('${d.id}')">✏️</button>
+        <button class="ab danger" onclick="delDefect('${d.id}')">🗑️</button>
+      </div>
+    </div>
+    <div class="dr-foot">
+      <span class="dr-meta">Reported: ${fmtD(d.reported)}</span>
+      <div class="progress-bar-sm"><div class="progress-bar-sm-fill" style="width:${pct}%;background:${stat.c}"></div></div>
+      <span class="dr-meta">Target: ${fmtD(d.target)}</span>
+    </div>
+    ${d.assignedTo?`<div style="font-size:11px;color:var(--tx3);margin-top:4px">👤 ${esc(d.assignedTo)}</div>`:''}
+  </div>`
+}
+
+// ═══════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════
+function render(){
+  const a=active(),d=done(),ov=overdue(),td=dueToday(),exp=expiringContracts()
+  const rate=tasks.length?Math.round(d.length/tasks.length*100):0
+  const openDef=defects.filter(x=>x.status!=='resolved')
+
+  // Nav counts
+  document.getElementById('nc-a').textContent=a.length
+  document.getElementById('nc-c').textContent=d.length
+  document.getElementById('nc-exp').textContent=exp.length
+  document.getElementById('nc-def').textContent=openDef.length
+  document.getElementById('ss-ov').textContent=ov.length+' overdue'
+  document.getElementById('ss-td').textContent=td.length+' due today'
+  document.getElementById('ss-rt').textContent=rate+'% completion rate'
+
+  if(view==='dashboard')renderDash(a,d,ov,td,rate,exp,openDef)
+  else if(view==='active')renderTaskList('active-list','active-sub',filterTasks(a),'active')
+  else if(view==='completed')renderTaskList('completed-list','completed-sub',filterTasks(d),'completed')
+  else if(view==='contracts')renderContracts()
+  else if(view==='defects')renderDefects()
+  else if(view==='budget')renderBudget()
+  else if(view==='reports')renderStats()
+}
+
+function renderDash(a,d,ov,td,rate,exp,openDef){
+  document.getElementById('dash-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+
+  // Tiles
+  const tileData=[
+    {v:tasks.length,l:'Total Tasks',sub:'all time',c:'var(--ac)',ico:'📋',view:'active'},
+    {v:a.length,l:'Active Tasks',sub:'in progress',c:'var(--yw)',ico:'⏰',view:'active'},
+    {v:ov.length,l:'Overdue',sub:'need attention',c:'var(--rd)',ico:'⚠️',view:'active'},
+    {v:d.length,l:'Completed',sub:rate+'% rate',c:'var(--gn)',ico:'✅',view:'completed'},
+  ]
+  document.getElementById('tiles').innerHTML=tileData.map(t=>`
+    <div class="tile" onclick="setView('${t.view}')">
+      <div class="tile-bg">${t.ico}</div>
+      <div class="tile-val" style="color:${t.c}">${t.v}</div>
+      <div class="tile-lbl">${t.l}</div>
+      <div class="tile-sub">${t.sub}</div>
+    </div>`).join('')
+
+  // Completion bar
+  document.getElementById('cpct').textContent=rate+'%'
+  document.getElementById('cpctbar').style.width=rate+'%'
+  const total=tasks.length||1
+  const segments=[
+    {pct:Math.round(d.length/total*100),c:'var(--gn)',l:`✅ Done (${d.length})`},
+    {pct:Math.round((a.length-ov.length)/total*100),c:'var(--ac)',l:`🔵 Active (${a.length-ov.length})`},
+    {pct:Math.round(ov.length/total*100),c:'var(--rd)',l:`🔴 Overdue (${ov.length})`},
+  ]
+  document.getElementById('status-legend').innerHTML=segments.map(s=>`<span style="font-size:11px;color:var(--tx2);display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${s.c}"></span>${s.l}</span>`).join('')
+
+  // Urgent tasks
+  const urgOrd={ov:0,td:1,sn:2,up:3,ok:4,none:5}
+  const urgent=[...a].filter(t=>['ov','td','sn'].includes(urgency(t.dueDate).lv)).sort((x,y)=>(urgOrd[urgency(x.dueDate).lv]??9)-(urgOrd[urgency(y.dueDate).lv]??9)).slice(0,4)
+  const dl=document.getElementById('dash-urgent')
+  dl.innerHTML=urgent.length?urgent.map(t=>taskCardHtml(t,true)).join(''):'<div class="empty-state"><div class="ei">🎉</div>No urgent tasks</div>'
+
+  // Due this week
+  const week=[...a].filter(t=>{const d=diffD(t.dueDate);return d!==null&&d>1&&d<=7}).sort((x,y)=>x.dueDate.localeCompare(y.dueDate)).slice(0,4)
+  document.getElementById('dash-week').innerHTML=week.length?week.map(t=>taskCardHtml(t,true)).join(''):'<div class="empty-state" style="padding:20px 0"><div style="font-size:11px;color:var(--tx3)">No tasks due this week</div></div>'
+
+  // Expiring contracts
+  const ec=exp.slice(0,3)
+  document.getElementById('dash-contracts').innerHTML=ec.length?ec.map(contractRowHtml).join(''):'<div style="color:var(--tx3);font-size:12px;padding:8px 0">No contracts expiring soon</div>'
+
+  // Open defects
+  const od=openDef.slice(0,3)
+  document.getElementById('dash-defects').innerHTML=od.length?od.map(defectRowHtml).join(''):'<div style="color:var(--tx3);font-size:12px;padding:8px 0">No open defects</div>'
+}
+
+function renderTaskList(listId,subId,items,type){
+  const fLabel=fQ?` matching "${fQ}"`:''+(fCat!=='all'?` in ${gc(fCat).label}`:'')
+  document.getElementById(subId).textContent=`${items.length} task${items.length!==1?'s':''}${fLabel}`
+  document.getElementById(listId).innerHTML=items.length
+    ?items.map(t=>taskCardHtml(t)).join('')
+    :`<div class="empty-state"><div class="ei">${type==='active'?'✅':'📭'}</div>${fQ||fCat!=='all'?'No tasks match your filters.':type==='active'?'All clear — no active tasks!':'No completed tasks yet.'}</div>`
+}
+
+function renderContracts(){
+  const sorted=[...contracts].sort((a,b)=>(diffD(a.end)||999)-(diffD(b.end)||999))
+  document.getElementById('contracts-list').innerHTML=sorted.length?sorted.map(contractRowHtml).join(''):`<div class="empty-state"><div class="ei">📄</div>No contracts added yet</div>`
+}
+
+function renderDefects(){
+  const sorted=[...defects].sort((a,b)=>{const so={critical:0,high:1,medium:2,low:3};return(so[a.severity||'low'])-(so[b.severity||'low'])})
+  document.getElementById('defects-list').innerHTML=sorted.length?sorted.map(defectRowHtml).join(''):`<div class="empty-state"><div class="ei">🔧</div>No defects logged</div>`
+}
+
+function renderBudget(){
+  const years=[...new Set(budget.map(b=>b.year))].sort((a,z)=>z-a)
+  const curYear=years[0]||new Date().getFullYear()
+  const items=budget.filter(b=>b.year===curYear)
+  const totalBud=items.reduce((s,b)=>s+(b.budgeted||0),0)
+  const totalAct=items.reduce((s,b)=>s+(b.actual||0),0)
+  const variance=totalBud-totalAct
+  const cats=[...new Set(items.map(b=>b.category))]
+
+  let html=`<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <div class="card" style="flex:1;min-width:120px"><div class="card-title">Budgeted</div><div style="font-size:20px;font-weight:700;font-family:var(--mo);color:var(--ac)">${fmtMoney(totalBud)}</div></div>
+    <div class="card" style="flex:1;min-width:120px"><div class="card-title">Actual Spent</div><div style="font-size:20px;font-weight:700;font-family:var(--mo);color:var(--yw)">${fmtMoney(totalAct)}</div></div>
+    <div class="card" style="flex:1;min-width:120px"><div class="card-title">Variance</div><div style="font-size:20px;font-weight:700;font-family:var(--mo);color:${variance>=0?'var(--gn)':'var(--rd)'}">${variance>=0?'+':''}${fmtMoney(variance)}</div></div>
+  </div>`
+
+  // Progress bar
+  const pct=totalBud?Math.min(100,Math.round(totalAct/totalBud*100)):0
+  html+=`<div class="prog-card" style="margin-bottom:16px">
+    <div class="prog-head"><span class="prog-lbl">Budget Utilisation (FY${curYear})</span><span class="prog-pct" style="color:${pct>100?'var(--rd)':pct>90?'var(--yw)':'var(--gn)'}">${pct}%</span></div>
+    <div class="prog-track"><div class="prog-fill" style="width:${Math.min(pct,100)}%;background:${pct>100?'var(--rd)':pct>90?'var(--yw)':'var(--gn)'}"></div></div>
+  </div>`
+
+  html+=`<div class="card"><div class="card-title">Line Items — FY${curYear}</div>`
+  html+=`<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:0 12px;font-size:11px;color:var(--tx3);padding:4px 0;border-bottom:1px solid var(--bd);font-weight:600;text-transform:uppercase;letter-spacing:.07em"><span>Item</span><span style="text-align:right">Budgeted</span><span style="text-align:right">Actual</span><span style="text-align:right">Variance</span></div>`
+  cats.forEach(cat=>{
+    const catItems=items.filter(b=>b.category===cat)
+    html+=`<div style="font-size:11px;font-weight:600;color:var(--tx3);padding:8px 0 3px;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--bd)">${cat}</div>`
+    catItems.forEach(b=>{
+      const v=(b.budgeted||0)-(b.actual||0)
+      html+=`<div class="budget-row">
+        <div class="br-item">${esc(b.item)}</div>
+        <div class="br-num">${fmtMoney(b.budgeted)}</div>
+        <div class="br-num" style="color:var(--yw)">${fmtMoney(b.actual)}</div>
+        <div class="br-num" style="color:${v>=0?'var(--gn)':'var(--rd)'}">${v>=0?'+':''}${fmtMoney(v)}</div>
+        <div class="tacts" style="margin-left:4px"><button class="ab" onclick="openBudgetModal('${b.id}')">✏️</button><button class="ab danger" onclick="delBudget('${b.id}')">🗑️</button></div>
+      </div>`
+    })
   })
+  html+=`<div class="budget-total"><span class="bt-lbl">Total</span><span class="bt-val" style="color:var(--ac)">${fmtMoney(totalBud)} / ${fmtMoney(totalAct)}</span></div></div>`
+  document.getElementById('budget-content').innerHTML=html
+}
+
+function renderStats(){
+  document.getElementById('stats-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+  const a=active(),d=done()
+  const avgDays=d.filter(t=>t.completedAt&&t.createdAt).map(t=>Math.max(0,Math.round((new Date(t.completedAt+'T12:00:00')-new Date(t.createdAt+'T12:00:00'))/86400000)))
   const avgComp=avgDays.length?Math.round(avgDays.reduce((s,v)=>s+v,0)/avgDays.length):null
   const onTime=d.filter(t=>t.completedAt&&t.dueDate&&t.completedAt<=t.dueDate).length
   const onTimePct=d.length?Math.round(onTime/d.length*100):0
-  const overdueTasks=all.filter(t=>!t.completed&&t.dueDate&&diffD(t.dueDate)<0)
-  document.getElementById('kpi-list').innerHTML=[
-    ['Total Tasks',all.length,'var(--ac)'],
-    ['Completed',d.length,'var(--gn)'],
-    ['Active',a.length,'var(--yw)'],
-    ['Overdue',overdueTasks.length,'var(--rd)'],
-    ['On-Time Rate',d.length?onTimePct+'%':'—','var(--gn)'],
-    ['Avg Completion',avgComp!==null?avgComp+'d':'—','var(--ac)'],
-    ['Completion Rate',all.length?Math.round(d.length/all.length*100)+'%':'—','var(--gn)'],
-  ].map(([l,v,c])=>`<div class="kpi-row"><span class="kpi-lbl">${l}</span><span class="kpi-val" style="color:${c}">${v}</span></div>`).join('')
+  const rate=tasks.length?Math.round(d.length/tasks.length*100):0
 
-  // Category breakdown
-  const catCounts={}
-  CATS.forEach(c=>{catCounts[c.id]={total:0,done:0}})
-  all.forEach(t=>{if(catCounts[t.category]){catCounts[t.category].total++;if(t.completed)catCounts[t.category].done++}})
-  const maxC=Math.max(...CATS.map(c=>catCounts[c.id].total),1)
-  document.getElementById('cat-breakdown').innerHTML=CATS.filter(c=>catCounts[c.id].total>0).sort((a,b)=>catCounts[b.id].total-catCounts[a.id].total).map(c=>{
-    const cnt=catCounts[c.id]
-    const pct=Math.round(cnt.total/maxC*100)
-    return`<div class="cat-bar">
-      <span class="cat-bar-label" style="color:${c.color}">${c.label}</span>
-      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%;background:${c.color}"></div></div>
-      <span class="cat-bar-val">${cnt.total}</span>
-    </div>`
-  }).join('')||'<div style="color:var(--tx3);font-size:12px;padding:8px 0">No data yet</div>'
+  document.getElementById('stats-kpis').innerHTML=[
+    {l:'Completion Rate',v:rate+'%',c:'var(--gn)'},
+    {l:'On-Time Rate',v:d.length?onTimePct+'%':'—',c:'var(--ac)'},
+    {l:'Avg Days to Complete',v:avgComp!==null?avgComp+'d':'—',c:'var(--yw)'},
+    {l:'Total Tasks',v:tasks.length,c:'var(--tx)'},
+    {l:'Active Tasks',v:a.length,c:'var(--yw)'},
+    {l:'Overdue Tasks',v:overdue().length,c:'var(--rd)'},
+  ].map(k=>`<div class="card"><div class="card-title">${k.l}</div><div style="font-size:24px;font-weight:700;font-family:var(--mo);color:${k.c}">${k.v}</div></div>`).join('')
 
-  // Performance
+  // By category
+  const catData=CATS.map(c=>({cat:c,total:tasks.filter(t=>t.category===c.id).length,done:tasks.filter(t=>t.category===c.id&&t.completed).length})).filter(x=>x.total>0).sort((a,b)=>b.total-a.total)
+  const maxC=Math.max(...catData.map(x=>x.total),1)
+  document.getElementById('cat-chart').innerHTML=catData.map(x=>`<div class="cat-bar-row" style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+    <span style="font-size:11px;color:${x.cat.color};width:110px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${x.cat.label}</span>
+    <div style="flex:1;height:6px;background:var(--sf3);border-radius:99px;overflow:hidden"><div style="height:100%;width:${Math.round(x.total/maxC*100)}%;background:${x.cat.color};border-radius:99px"></div></div>
+    <span style="font-size:11px;color:var(--tx3);font-family:var(--mo);width:24px;text-align:right">${x.total}</span>
+  </div>`).join('')||'<div style="color:var(--tx3);font-size:12px">No data</div>'
+
+  // Monthly performance
   const byMonth={}
-  d.forEach(t=>{
-    if(!t.completedAt)return
-    const m=t.completedAt.slice(0,7)
-    byMonth[m]=(byMonth[m]||0)+1
-  })
+  d.forEach(t=>{if(!t.completedAt)return;const m=t.completedAt.slice(0,7);byMonth[m]=(byMonth[m]||0)+1})
   const months=Object.keys(byMonth).sort().slice(-6)
   const maxM=Math.max(...months.map(m=>byMonth[m]),1)
-  document.getElementById('perf-block').innerHTML=`
-    <div class="kpi-row"><span class="kpi-lbl">Completed on time</span><span class="kpi-val" style="color:var(--gn)">${onTimePct}%</span></div>
-    <div class="kpi-row"><span class="kpi-lbl">Avg days to complete</span><span class="kpi-val">${avgComp!==null?avgComp+' days':'—'}</span></div>
-    <div class="kpi-row"><span class="kpi-lbl">Fastest completion</span><span class="kpi-val" style="color:var(--gn)">${avgDays.length?Math.min(...avgDays)+' days':'—'}</span></div>
-    <div class="kpi-row"><span class="kpi-lbl">Slowest completion</span><span class="kpi-val" style="color:var(--yw)">${avgDays.length?Math.max(...avgDays)+' days':'—'}</span></div>
-    <div style="margin-top:12px">
-      ${months.map(m=>{
-        const pct=Math.round(byMonth[m]/maxM*100)
-        const label=new Date(m+'-01').toLocaleDateString('en-GB',{month:'short',year:'2-digit'})
-        return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-          <span style="font-size:11px;color:var(--tx3);width:42px;font-family:var(--mo)">${label}</span>
-          <div style="flex:1;height:5px;background:var(--sf3);border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--gn);border-radius:99px"></div></div>
-          <span style="font-size:11px;color:var(--tx3);font-family:var(--mo);width:20px;text-align:right">${byMonth[m]}</span>
-        </div>`
-      }).join('')}
-      ${months.length===0?'<div style="color:var(--tx3);font-size:12px">No completions yet</div>':''}
-    </div>`
-
-  // Recent completions
-  const recent=[...d].sort((a,b)=>(b.completedAt||'').localeCompare(a.completedAt||'')).slice(0,6)
-  document.getElementById('recent-done').innerHTML=recent.length?recent.map(t=>{
-    const cat=gc(t.category)
-    const dur=t.completedAt&&t.createdAt?Math.max(0,Math.round((new Date(t.completedAt+'T12:00:00')-new Date(t.createdAt+'T12:00:00'))/86400000)):null
-    return`<div class="kpi-row">
-      <span class="kpi-lbl" style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${cat.color};flex-shrink:0"></span>${esc(t.title.length>28?t.title.slice(0,28)+'…':t.title)}</span>
-      <span class="kpi-val" style="color:var(--tx3);font-size:11px">${dur!==null?dur+'d':''} ${fmtShort(t.completedAt)}</span>
-    </div>`
-  }).join(''):'<div style="color:var(--tx3);font-size:12px;padding:8px 0">No completions yet</div>'
+  document.getElementById('perf-chart').innerHTML=`
+    <div class="kpi-row"><span class="kpi-l">On-time completion</span><span class="kpi-v" style="color:var(--gn)">${onTimePct}%</span></div>
+    <div class="kpi-row"><span class="kpi-l">Avg days to complete</span><span class="kpi-v">${avgComp!==null?avgComp+' days':'—'}</span></div>
+    <div class="kpi-row"><span class="kpi-l">Fastest task</span><span class="kpi-v" style="color:var(--gn)">${avgDays.length?Math.min(...avgDays)+'d':'—'}</span></div>
+    <div class="kpi-row" style="margin-bottom:12px"><span class="kpi-l">Slowest task</span><span class="kpi-v" style="color:var(--yw)">${avgDays.length?Math.max(...avgDays)+'d':'—'}</span></div>
+    <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Monthly Completions</div>
+    ${months.map(m=>{const pct=Math.round(byMonth[m]/maxM*100);const lbl=new Date(m+'-01').toLocaleDateString('en-GB',{month:'short',year:'2-digit'})
+      return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="font-size:11px;color:var(--tx3);width:36px;font-family:var(--mo)">${lbl}</span><div style="flex:1;height:5px;background:var(--sf3);border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--gn);border-radius:99px"></div></div><span style="font-size:11px;color:var(--tx3);font-family:var(--mo);width:18px;text-align:right">${byMonth[m]}</span></div>`
+    }).join('')}
+    ${months.length===0?'<div style="color:var(--tx3);font-size:12px">No completions yet</div>':''}`
 
   // Timeline
-  const tlTasks=[...d].sort((a,b)=>(b.completedAt||'').localeCompare(a.completedAt||'')).slice(0,12)
-  document.getElementById('timeline').innerHTML=tlTasks.length?tlTasks.map((t,i)=>{
+  const tlItems=[...d].sort((a,b)=>(b.completedAt||'').localeCompare(a.completedAt||'')).slice(0,10)
+  document.getElementById('timeline-list').innerHTML=tlItems.length?tlItems.map((t,i)=>{
     const cat=gc(t.category)
     const dur=t.completedAt&&t.createdAt?Math.max(0,Math.round((new Date(t.completedAt+'T12:00:00')-new Date(t.createdAt+'T12:00:00'))/86400000)):null
     const onT=t.dueDate&&t.completedAt&&t.completedAt<=t.dueDate
-    return`<div class="timeline-item">
-      <div style="display:flex;flex-direction:column;align-items:center">
-        <div class="tl-dot" style="background:${cat.color}"></div>
-        ${i<tlTasks.length-1?`<div class="tl-line" style="flex:1;min-height:30px"></div>`:''}
-      </div>
-      <div class="tl-body">
-        <div class="tl-title">${esc(t.title)}</div>
-        <div class="tl-meta">
-          <span style="color:${cat.color}">${cat.label}</span>
-          · Completed ${fmtD(t.completedAt)}
-          ${dur!==null?`· ${dur} days`:''}
-          ${t.dueDate?`<span style="color:${onT?'var(--gn)':'var(--rd)'}"> · ${onT?'On time':'Late'}</span>`:''}
-        </div>
-      </div>
-    </div>`
-  }).join(''):'<div class="empty" style="padding:20px">No completed tasks yet</div>'
-
-  document.getElementById('stats-sub').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · Performance overview'
+    return`<div class="tl-item">
+      <div class="tl-line-wrap"><div class="tl-dot" style="background:${cat.color}"></div>${i<tlItems.length-1?'<div class="tl-conn"></div>':''}</div>
+      <div class="tl-body"><div class="tl-title">${esc(t.title)}</div>
+        <div class="tl-meta"><span style="color:${cat.color}">${cat.label}</span> · Completed ${fmtD(t.completedAt)}${dur!==null?' · '+dur+'d':''} ${t.dueDate?`<span style="color:${onT?'var(--gn)':'var(--rd)'}">${onT?'· On time':'· Late'}</span>`:''}</div>
+      </div></div>`
+  }).join(''):'<div style="color:var(--tx3);font-size:12px;padding:10px 0">No completed tasks yet</div>'
 }
 
-function render(){
-  const a=actv(),d=done(),ov=ovd(),td=tod()
-  const rate=tasks.length?Math.round(d.length/tasks.length*100):0
-  document.getElementById('nc-a').textContent=a.length
-  document.getElementById('nc-d').textContent=d.length
-  document.getElementById('sv-tot').textContent=tasks.length
-  document.getElementById('sv-act').textContent=a.length
-  document.getElementById('sv-ovd').textContent=ov.length
-  document.getElementById('sv-don').textContent=d.length
-  document.getElementById('mpct').textContent=rate+'%'
-  document.getElementById('mfill').style.width=rate+'%'
-  document.getElementById('ss-ov').textContent=ov.length+' overdue'
-  document.getElementById('ss-td').textContent=td.length+' due today'
-  document.getElementById('ss-rt').textContent=rate+'% complete'
-  document.getElementById('today-lbl').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · Condo Task Overview'
-
-  const ord={ov:0,td:1,sn:2,up:3,ok:4,none:5}
-  const dashItems=[...a].sort((x,y)=>(ord[urg(x.dueDate).lv]??9)-(ord[urg(y.dueDate).lv]??9)).slice(0,5)
-  document.getElementById('dash-list').innerHTML=dashItems.length?dashItems.map(cardHtml).join(''):'<div class="empty">No active tasks — add one! 🎉</div>'
-
-  const fa=applyF(a)
-  document.getElementById('albl').textContent=fa.length+' task'+(fa.length!==1?'s':'')+(fQ?` matching "${fQ}"`:'')+(fCat!=='all'?` in ${gc(fCat).label}`:'')
-  document.getElementById('active-list').innerHTML=fa.length?fa.map(cardHtml).join(''):`<div class="empty">${fQ||fCat!=='all'?'No tasks match your filters.':'All clear! No active tasks.'}</div>`
-
-  const fd=applyF(d)
-  document.getElementById('dlbl').textContent=fd.length+' task'+(fd.length!==1?'s':'')+(fQ?` matching "${fQ}"`:'')+(fCat!=='all'?` in ${gc(fCat).label}`:'')
-  document.getElementById('archive-list').innerHTML=fd.length?fd.map(cardHtml).join(''):`<div class="empty">${fQ||fCat!=='all'?'No archived tasks match your filters.':'No completed tasks yet.'}</div>`
-
-  if(view==='stats')renderStats()
-}
-
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
 function setView(v){
   view=v
   document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',b.dataset.view===v))
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='page-'+v))
-  if(v==='stats')renderStats()
-  closeSidebar()
+  const addBtn=document.getElementById('addbtn')
+  if(v==='contracts'){addBtn.onclick=()=>openContractModal();addBtn.querySelector('.batxt').textContent=' Add Contract'}
+  else if(v==='defects'){addBtn.onclick=()=>openDefectModal();addBtn.querySelector('.batxt').textContent=' Log Defect'}
+  else if(v==='budget'){addBtn.onclick=()=>openBudgetModal();addBtn.querySelector('.batxt').textContent=' Add Item'}
+  else{addBtn.onclick=()=>openTaskModal();addBtn.querySelector('.batxt').textContent=' New Task'}
+  render()
+  closeSB()
 }
-
-function completeTask(id){tasks=tasks.map(t=>t.id===id?{...t,completed:true,completedAt:T}:t);save();render()}
-function restoreTask(id){tasks=tasks.map(t=>t.id===id?{...t,completed:false,completedAt:null}:t);save();render()}
-function delTask(id){if(confirm('Delete this task?')){tasks=tasks.filter(t=>t.id!==id);save();render()}}
-
-// NAV
 document.querySelectorAll('.nb').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)))
 
-// SEARCH — live filtering
-const siEl=document.getElementById('si'),scEl=document.getElementById('sc')
-siEl.addEventListener('input',()=>{
-  fQ=siEl.value
-  scEl.style.display=fQ?'block':'none'
-  render()
-})
-scEl.addEventListener('click',()=>{fQ='';siEl.value='';scEl.style.display='none';render()})
-
-// FILTER BAR
+// ═══════════════════════════════════════════
+// SEARCH + FILTER
+// ═══════════════════════════════════════════
+const srch=document.getElementById('srch'),sxbtn=document.getElementById('sxbtn')
+srch.addEventListener('input',()=>{fQ=srch.value;sxbtn.style.display=fQ?'block':'none';render()})
+sxbtn.addEventListener('click',()=>{fQ='';srch.value='';sxbtn.style.display='none';render()})
 document.getElementById('ft-btn').addEventListener('click',function(){
-  document.getElementById('fbar').classList.toggle('open')
-  this.classList.toggle('on')
+  document.getElementById('fbar').classList.toggle('open');this.classList.toggle('on')
 })
+// Cat pills
+const cpWrap=document.getElementById('cat-pills')
+cpWrap.innerHTML='<button class="pill on" data-cat="all">All</button>'+CATS.map(c=>`<button class="pill" data-cat="${c.id}">${c.label}</button>`).join('')
+cpWrap.addEventListener('click',e=>{const p=e.target.closest('.pill');if(!p)return;fCat=p.dataset.cat;cpWrap.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));p.classList.add('on');render()})
+// Sort pills
+document.getElementById('sort-pills').addEventListener('click',e=>{const p=e.target.closest('.pill');if(!p)return;fSort=p.dataset.sort;document.querySelectorAll('#sort-pills .pill').forEach(x=>x.classList.remove('on'));p.classList.add('on');render()})
 
-// CATEGORY PILLS
-const cpEl=document.getElementById('cat-pills')
-cpEl.innerHTML='<button class="pill on" data-cat="all">All</button>'+CATS.map(c=>`<button class="pill" data-cat="${c.id}">${c.label}</button>`).join('')
-cpEl.addEventListener('click',e=>{
-  const p=e.target.closest('.pill')
-  if(!p)return
-  fCat=p.dataset.cat
-  cpEl.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'))
-  p.classList.add('on')
-  render()
-})
-
-// SORT PILLS
-document.getElementById('sort-pills').addEventListener('click',e=>{
-  const p=e.target.closest('.pill')
-  if(!p)return
-  fSort=p.dataset.sort
-  document.querySelectorAll('#sort-pills .pill').forEach(x=>x.classList.remove('on'))
-  p.classList.add('on')
-  render()
-})
-
+// ═══════════════════════════════════════════
 // MOBILE SIDEBAR
-function openSidebar(){document.getElementById('sidebar').classList.add('mob-open');document.getElementById('sb-ov').classList.add('open')}
-function closeSidebar(){document.getElementById('sidebar').classList.remove('mob-open');document.getElementById('sb-ov').classList.remove('open')}
+// ═══════════════════════════════════════════
+function openSB(){document.getElementById('sidebar').classList.add('open');document.getElementById('sbmask').classList.add('open')}
+function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbmask').classList.remove('open')}
 
-// MODAL
+// ═══════════════════════════════════════════
+// TASK MODAL
+// ═══════════════════════════════════════════
 function renderCpills(){
   document.getElementById('cpills').innerHTML=CATS.map(c=>{
     const on=selCat===c.id
     return`<button class="cpill" data-cat="${c.id}" style="border-color:${on?c.color:'var(--bd)'};background:${on?c.color+'22':'transparent'};color:${on?c.color:'var(--tx2)'}">${c.label}</button>`
   }).join('')
-  document.getElementById('cpills').onclick=e=>{
-    const b=e.target.closest('.cpill')
-    if(!b)return
-    selCat=b.dataset.cat
-    renderCpills()
-  }
+  document.getElementById('cpills').onclick=e=>{const b=e.target.closest('.cpill');if(!b)return;selCat=b.dataset.cat;renderCpills()}
 }
-function validateM(){document.getElementById('msave').disabled=!document.getElementById('mt').value.trim()}
-document.getElementById('mt').addEventListener('input',validateM)
+function valTask(){document.getElementById('msave').disabled=!document.getElementById('mt').value.trim()}
+document.getElementById('mt').addEventListener('input',valTask)
 
-function openModal(id=null){
-  editId=id
+function openTaskModal(id=null){
+  editTaskId=id
   const t=id?tasks.find(x=>x.id===id):null
-  document.getElementById('m-head').textContent=id?'Edit Task':'New Task'
+  document.getElementById('mhd').textContent=id?'Edit Task':'New Task'
   document.getElementById('msave').textContent=id?'Save Changes':'Add Task'
   document.getElementById('mt').value=t?.title||''
-  document.getElementById('md').value=t?.description||''
+  document.getElementById('mdesc').value=t?.description||''
   document.getElementById('mdue').value=t?.dueDate||''
+  document.getElementById('mpri').value=t?.priority||'normal'
+  document.getElementById('massign').value=t?.assignedTo||''
   selCat=t?.category||'maintenance'
-  renderCpills()
+  renderCpills();valTask()
   document.getElementById('ov').classList.add('open')
-  document.getElementById('mt').focus()
-  validateM()
+  setTimeout(()=>document.getElementById('mt').focus(),50)
 }
-function openEdit(id){openModal(id)}
-function closeModal(){document.getElementById('ov').classList.remove('open');editId=null}
+function closeTaskModal(){document.getElementById('ov').classList.remove('open');editTaskId=null}
 document.getElementById('msave').addEventListener('click',()=>{
-  const title=document.getElementById('mt').value.trim()
-  if(!title)return
-  const description=document.getElementById('md').value.trim()
-  const dueDate=document.getElementById('mdue').value
-  if(editId){tasks=tasks.map(t=>t.id===editId?{...t,category:selCat,title,description,dueDate}:t)}
-  else{tasks=[{id:uid(),category:selCat,title,description,dueDate,completed:false,createdAt:T,completedAt:null},...tasks]}
-  save();closeModal();render()
+  const title=document.getElementById('mt').value.trim();if(!title)return
+  const obj={category:selCat,title,description:document.getElementById('mdesc').value.trim(),dueDate:document.getElementById('mdue').value,priority:document.getElementById('mpri').value,assignedTo:document.getElementById('massign').value.trim()}
+  if(editTaskId){tasks=tasks.map(t=>t.id===editTaskId?{...t,...obj}:t)}
+  else{tasks=[{id:uid(),...obj,completed:false,createdAt:T,completedAt:null},...tasks]}
+  save();closeTaskModal();render()
 })
-document.getElementById('mx').addEventListener('click',closeModal)
-document.getElementById('mcancel').addEventListener('click',closeModal)
-document.getElementById('ov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()})
-document.getElementById('new-btn').addEventListener('click',()=>openModal())
+document.getElementById('mcx').onclick=closeTaskModal
+document.getElementById('mcan').onclick=closeTaskModal
+document.getElementById('ov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeTaskModal()})
+document.getElementById('addbtn').addEventListener('click',()=>openTaskModal())
 
-// PDF REPORT
-document.getElementById('pdf-btn').addEventListener('click',()=>{
+function completeTask(id){tasks=tasks.map(t=>t.id===id?{...t,completed:true,completedAt:T}:t);save();render()}
+function restoreTask(id){tasks=tasks.map(t=>t.id===id?{...t,completed:false,completedAt:null}:t);save();render()}
+function delTask(id){if(confirm('Delete this task?')){tasks=tasks.filter(t=>t.id!==id);save();render()}}
+
+// ═══════════════════════════════════════════
+// CONTRACT MODAL
+// ═══════════════════════════════════════════
+function valContract(){document.getElementById('csave').disabled=!document.getElementById('cname').value.trim()}
+document.getElementById('cname').addEventListener('input',valContract)
+function openContractModal(id=null){
+  editContractId=id
+  const c=id?contracts.find(x=>x.id===id):null
+  document.getElementById('chd').textContent=id?'Edit Contract':'Add Contract'
+  document.getElementById('csave').textContent=id?'Save Changes':'Save Contract'
+  document.getElementById('cname').value=c?.name||''
+  document.getElementById('cwork').value=c?.work||''
+  document.getElementById('ccont').value=c?.contact||''
+  document.getElementById('csum').value=c?.sum||''
+  document.getElementById('cpay').value=c?.payment||'Monthly'
+  document.getElementById('cstart').value=c?.start||''
+  document.getElementById('cend').value=c?.end||''
+  document.getElementById('cnotes').value=c?.notes||''
+  valContract()
+  document.getElementById('cov').style.display='flex'
+  document.getElementById('cmodal').style.display='block'
+}
+function closeContractModal(){document.getElementById('cov').style.display='none';document.getElementById('cmodal').style.display='none';editContractId=null}
+document.getElementById('csave').addEventListener('click',()=>{
+  const name=document.getElementById('cname').value.trim();if(!name)return
+  const obj={name,work:document.getElementById('cwork').value.trim(),contact:document.getElementById('ccont').value.trim(),sum:parseFloat(document.getElementById('csum').value)||0,payment:document.getElementById('cpay').value,start:document.getElementById('cstart').value,end:document.getElementById('cend').value,notes:document.getElementById('cnotes').value.trim()}
+  if(editContractId){contracts=contracts.map(c=>c.id===editContractId?{...c,...obj}:c)}else{contracts=[...contracts,{id:uid(),...obj}]}
+  save();closeContractModal();render()
+})
+document.getElementById('ccx').onclick=closeContractModal
+document.getElementById('ccan').onclick=closeContractModal
+document.getElementById('cov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeContractModal()})
+function delContract(id){if(confirm('Delete this contract?')){contracts=contracts.filter(c=>c.id!==id);save();render()}}
+
+// ═══════════════════════════════════════════
+// DEFECT MODAL
+// ═══════════════════════════════════════════
+function valDefect(){document.getElementById('dsave').disabled=!document.getElementById('dtitle').value.trim()}
+document.getElementById('dtitle').addEventListener('input',valDefect)
+function openDefectModal(id=null){
+  editDefectId=id
+  const d=id?defects.find(x=>x.id===id):null
+  document.getElementById('dhd').textContent=id?'Edit Defect':'Log Defect'
+  document.getElementById('dsave').textContent=id?'Save Changes':'Save Defect'
+  document.getElementById('dtitle').value=d?.title||''
+  document.getElementById('dloc').value=d?.location||''
+  document.getElementById('dsev').value=d?.severity||'low'
+  document.getElementById('ddesc').value=d?.description||''
+  document.getElementById('drep').value=d?.reported||T
+  document.getElementById('dtgt').value=d?.target||''
+  document.getElementById('dassign').value=d?.assignedTo||''
+  document.getElementById('dstat').value=d?.status||'open'
+  valDefect()
+  document.getElementById('dov').style.display='flex'
+  document.getElementById('dmodal').style.display='block'
+}
+function closeDefectModal(){document.getElementById('dov').style.display='none';document.getElementById('dmodal').style.display='none';editDefectId=null}
+document.getElementById('dsave').addEventListener('click',()=>{
+  const title=document.getElementById('dtitle').value.trim();if(!title)return
+  const obj={title,location:document.getElementById('dloc').value.trim(),severity:document.getElementById('dsev').value,description:document.getElementById('ddesc').value.trim(),reported:document.getElementById('drep').value,target:document.getElementById('dtgt').value,assignedTo:document.getElementById('dassign').value.trim(),status:document.getElementById('dstat').value}
+  if(editDefectId){defects=defects.map(d=>d.id===editDefectId?{...d,...obj}:d)}else{defects=[...defects,{id:uid(),...obj}]}
+  save();closeDefectModal();render()
+})
+document.getElementById('dcx').onclick=closeDefectModal
+document.getElementById('dcan').onclick=closeDefectModal
+document.getElementById('dov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDefectModal()})
+function delDefect(id){if(confirm('Delete this defect?')){defects=defects.filter(d=>d.id!==id);save();render()}}
+
+// ═══════════════════════════════════════════
+// BUDGET MODAL
+// ═══════════════════════════════════════════
+function valBudget(){document.getElementById('bsave').disabled=!document.getElementById('bitem').value.trim()}
+document.getElementById('bitem').addEventListener('input',valBudget)
+function openBudgetModal(id=null){
+  editBudgetId=id
+  const b=id?budget.find(x=>x.id===id):null
+  document.getElementById('bhd').textContent=id?'Edit Budget Item':'Add Budget Item'
+  document.getElementById('bsave').textContent=id?'Save Changes':'Save Item'
+  document.getElementById('bitem').value=b?.item||''
+  document.getElementById('bcat').value=b?.category||'Maintenance'
+  document.getElementById('byear').value=b?.year||new Date().getFullYear()
+  document.getElementById('bbud').value=b?.budgeted||''
+  document.getElementById('bact').value=b?.actual||''
+  document.getElementById('bnotes').value=b?.notes||''
+  valBudget()
+  document.getElementById('bov').style.display='flex'
+  document.getElementById('bmodal').style.display='block'
+}
+function closeBudgetModal(){document.getElementById('bov').style.display='none';document.getElementById('bmodal').style.display='none';editBudgetId=null}
+document.getElementById('bsave').addEventListener('click',()=>{
+  const item=document.getElementById('bitem').value.trim();if(!item)return
+  const obj={item,category:document.getElementById('bcat').value,year:parseInt(document.getElementById('byear').value)||new Date().getFullYear(),budgeted:parseFloat(document.getElementById('bbud').value)||0,actual:parseFloat(document.getElementById('bact').value)||0,notes:document.getElementById('bnotes').value.trim()}
+  if(editBudgetId){budget=budget.map(b=>b.id===editBudgetId?{...b,...obj}:b)}else{budget=[...budget,{id:uid(),...obj}]}
+  save();closeBudgetModal();render()
+})
+document.getElementById('bcx').onclick=closeBudgetModal
+document.getElementById('bcan').onclick=closeBudgetModal
+document.getElementById('bov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeBudgetModal()})
+function delBudget(id){if(confirm('Delete this item?')){budget=budget.filter(b=>b.id!==id);save();render()}}
+
+// ═══════════════════════════════════════════
+// REPORT MODAL
+// ═══════════════════════════════════════════
+const rov=document.getElementById('rov'),rmodal=document.getElementById('rmodal')
+// Populate year dropdown
+const yr=document.getElementById('ryear')
+const curY=new Date().getFullYear()
+for(let y=curY;y>=curY-3;y--){const o=document.createElement('option');o.value=y;o.textContent=y;if(y===curY)o.selected=true;yr.appendChild(o)}
+
+function openReportModal(){
+  rov.style.display='flex';rmodal.style.display='block'
+  document.getElementById('rmonth').value=new Date().getMonth()
+  document.getElementById('ryear').value=curY
+}
+function closeReportModal(){rov.style.display='none';rmodal.style.display='none'}
+document.getElementById('rcx').onclick=closeReportModal
+document.getElementById('rcan').onclick=closeReportModal
+rov.addEventListener('click',e=>{if(e.target===rov)closeReportModal()})
+
+document.getElementById('rtype-opts').addEventListener('click',e=>{
+  const b=e.target.closest('.r-opt');if(!b)return
+  rType=b.dataset.val
+  document.querySelectorAll('#rtype-opts .r-opt').forEach(x=>x.classList.remove('on'));b.classList.add('on')
+  document.getElementById('rtask-opts').style.display=rType==='tasks'?'block':'none'
+  document.getElementById('rutil-opts').style.display=rType==='utilities'?'flex':'none'
+  document.getElementById('rdate-step').style.display=rType==='contracts'?'none':'block'
+  document.getElementById('rstep4lbl').textContent=rType==='utilities'?'4. Utilities Category':'4. Additional'
+})
+document.getElementById('rfilter-opts').addEventListener('click',e=>{const b=e.target.closest('.r-opt');if(!b)return;rFilter=b.dataset.val;document.querySelectorAll('#rfilter-opts .r-opt').forEach(x=>x.classList.remove('on'));b.classList.add('on')})
+document.getElementById('rutil-opts').addEventListener('click',e=>{const b=e.target.closest('.r-opt');if(!b)return;rUtil=b.dataset.val;document.querySelectorAll('#rutil-opts .r-opt').forEach(x=>x.classList.remove('on'));b.classList.add('on')})
+
+document.getElementById('rgen').addEventListener('click',()=>{
+  closeReportModal()
+  const month=document.getElementById('rmonth').value
+  const year=parseInt(document.getElementById('ryear').value)
+  generatePDF(rType,rFilter,month===''?null:parseInt(month),year,rUtil)
+})
+
+// ═══════════════════════════════════════════
+// PDF GENERATION
+// ═══════════════════════════════════════════
+function generatePDF(type,filter,month,year,util){
   const {jsPDF}=window.jspdf
   const doc=new jsPDF()
   const now=new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
-  const a=actv(),d=done(),ov=ovd()
-  const rate=tasks.length?Math.round(d.length/tasks.length*100):0
-  const avgDays=d.filter(t=>t.completedAt&&t.createdAt).map(t=>Math.max(0,Math.round((new Date(t.completedAt+'T12:00:00')-new Date(t.createdAt+'T12:00:00'))/86400000)))
-  const avgComp=avgDays.length?Math.round(avgDays.reduce((s,v)=>s+v,0)/avgDays.length):null
-  const onTime=d.filter(t=>t.completedAt&&t.dueDate&&t.completedAt<=t.dueDate).length
-  const onTimePct=d.length?Math.round(onTime/d.length*100):0
+  const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December']
+  const periodLabel=month!==null?`${monthNames[month]} ${year}`:String(year)
 
-  // Header
-  doc.setFillColor(13,15,18);doc.rect(0,0,210,44,'F')
-  doc.setTextColor(232,234,240);doc.setFontSize(17);doc.setFont('helvetica','bold')
-  doc.text('CONDO MANAGEMENT AGENT',14,17)
+  // Header block
+  doc.setFillColor(13,15,18);doc.rect(0,0,210,46,'F')
+  doc.setTextColor(232,234,240);doc.setFontSize(16);doc.setFont('helvetica','bold')
+  const titles={tasks:'Organised Tasks Report',contracts:'Contract Summary Report',utilities:'Utilities Report'}
+  doc.text(titles[type]||'Management Report',14,17)
   doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(143,149,163)
-  doc.text('Task & Performance Report',14,26)
+  doc.text('Condo MA — Management Portal',14,26)
   doc.text('Generated: '+now,14,33)
-  doc.text('Period: All time',14,39)
+  if(type!=='contracts')doc.text('Period: '+periodLabel,14,40)
 
-  // Summary stats
-  doc.setFillColor(26,30,37);doc.rect(0,46,210,26,'F')
-  const stats2=[['TOTAL',tasks.length,14],['ACTIVE',a.length,54],['COMPLETED',d.length,94],['OVERDUE',ov.length,134],['RATE',rate+'%',172]]
-  stats2.forEach(([l,v,x])=>{
-    doc.setTextColor(232,234,240);doc.setFontSize(13);doc.setFont('helvetica','bold')
-    doc.text(''+v,x,59)
-    doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(143,149,163)
-    doc.text(l,x,66)
-  })
+  let y=52
 
-  let y=76
+  if(type==='tasks'){
+    // Filter tasks
+    let pool=filter==='active'?active():filter==='completed'?done():tasks
+    if(month!==null)pool=pool.filter(t=>{
+      const ref=t.completed?t.completedAt:t.dueDate||t.createdAt
+      if(!ref)return false
+      const d=new Date(ref+'T12:00:00')
+      return d.getMonth()===month&&d.getFullYear()===year
+    })
+    const a2=pool.filter(t=>!t.completed),d2=pool.filter(t=>t.completed)
+    const rate=pool.length?Math.round(d2.length/pool.length*100):0
+    const onTime=d2.filter(t=>t.completedAt&&t.dueDate&&t.completedAt<=t.dueDate).length
+    const avgDays=d2.filter(t=>t.completedAt&&t.createdAt).map(t=>Math.max(0,Math.round((new Date(t.completedAt+'T12:00:00')-new Date(t.createdAt+'T12:00:00'))/86400000)))
+    const avg=avgDays.length?Math.round(avgDays.reduce((s,v)=>s+v,0)/avgDays.length):null
 
-  // Performance metrics section
-  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(79,142,247)
-  doc.text('PERFORMANCE METRICS',14,y);y+=5
-  doc.setFillColor(26,30,37);doc.rect(14,y,182,22,'F')
-  doc.setTextColor(232,234,240);doc.setFontSize(9);doc.setFont('helvetica','normal')
-  const pm=[
-    ['On-time completion rate',onTimePct+'%',20],
-    ['Avg days to complete',avgComp!==null?avgComp+' days':'—',80],
-    ['Fastest completion',avgDays.length?Math.min(...avgDays)+' days':'—',140],
-  ]
-  pm.forEach(([l,v,x])=>{
-    doc.setTextColor(143,149,163);doc.setFontSize(7);doc.text(l,x,y+8)
-    doc.setTextColor(232,234,240);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text(v,x,y+17)
-    doc.setFont('helvetica','normal')
-  })
-  y+=28
+    // Stats bar
+    doc.setFillColor(26,30,37);doc.rect(0,y,210,22,'F')
+    ;[['TOTAL',pool.length,14],['ACTIVE',a2.length,54],['COMPLETED',d2.length,94],['RATE',rate+'%',134],['ON-TIME',d2.length?onTime+'/'+d2.length:'—',170]].forEach(([l,v,x])=>{
+      doc.setTextColor(232,234,240);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text(''+v,x,y+10)
+      doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(143,149,163);doc.text(l,x,y+18)
+    })
+    y+=28
+    if(avg!==null){doc.setFontSize(8);doc.setTextColor(143,149,163);doc.text('Average completion time: '+avg+' days',14,y);y+=6}
 
-  // Category breakdown
-  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(79,142,247)
-  doc.text('TASKS BY CATEGORY',14,y);y+=4
-  const catData=CATS.map(c=>({
-    cat:c,total:tasks.filter(t=>t.category===c.id).length,done:tasks.filter(t=>t.category===c.id&&t.completed).length
-  })).filter(x=>x.total>0).sort((a,b)=>b.total-a.total)
-  doc.autoTable({
-    startY:y,
-    head:[['Category','Total','Completed','Active','Rate']],
-    body:catData.map(x=>[x.cat.label,x.total,x.done,x.total-x.done,x.total?Math.round(x.done/x.total*100)+'%':'—']),
-    styles:{fontSize:8,cellPadding:3,lineColor:[42,47,58],lineWidth:.3},
-    headStyles:{fillColor:[26,30,37],textColor:[143,149,163],fontStyle:'bold',fontSize:7},
-    alternateRowStyles:{fillColor:[19,22,27]},
-    bodyStyles:{fillColor:[13,15,18],textColor:[232,234,240]},
-    margin:{left:14,right:14},
-  })
-  y=doc.lastAutoTable.finalY+8
+    // Tables
+    const tbl=(title,data,col)=>{
+      if(!data.length)return
+      doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(col[0],col[1],col[2]);doc.text(title.toUpperCase(),14,y);y+=3
+      doc.autoTable({startY:y,
+        head:[['Category','Task','Assigned To','Due Date',data[0].completed?'Completed':'Status','Days']],
+        body:data.map(t=>{
+          const dur=t.completedAt&&t.createdAt?Math.max(0,Math.round((new Date(t.completedAt+'T12:00:00')-new Date(t.createdAt+'T12:00:00'))/86400000)):null
+          const u=urgency(t.dueDate)
+          const dl=t.dueDate?diffD(t.dueDate):null
+          return[gc(t.category).label,t.title+(t.description?'\n'+t.description.slice(0,55)+(t.description.length>55?'...':''):''),t.assignedTo||'—',t.dueDate?fmtD(t.dueDate):'—',t.completed?fmtD(t.completedAt):u.lb,t.completed?(dur!==null?dur+'d':'—'):(dl!==null?(dl<0?dl+'d':'+'+dl+'d'):'—')]
+        }),
+        styles:{fontSize:7,cellPadding:3,lineColor:[42,47,58],lineWidth:.3},
+        headStyles:{fillColor:[26,30,37],textColor:[143,149,163],fontStyle:'bold',fontSize:6.5},
+        alternateRowStyles:{fillColor:[19,22,27]},
+        bodyStyles:{fillColor:[13,15,18],textColor:[232,234,240]},
+        columnStyles:{0:{cellWidth:26},1:{cellWidth:68},2:{cellWidth:26},3:{cellWidth:26},4:{cellWidth:28},5:{cellWidth:14}},
+        margin:{left:14,right:14}})
+      y=doc.lastAutoTable.finalY+8
+    }
+    if(filter!=='completed')tbl('Active Tasks ('+a2.length+')',a2,[245,200,66])
+    if(filter!=='active')tbl('Completed Tasks ('+d2.length+')',d2,[45,216,122])
+    if(!pool.length){doc.setFontSize(10);doc.setTextColor(143,149,163);doc.text('No tasks found for the selected period and filter.',14,y)}
 
-  // Active tasks
-  if(a.length){
-    doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(245,200,66)
-    doc.text('ACTIVE TASKS ('+a.length+')',14,y);y+=4
-    doc.autoTable({
-      startY:y,
-      head:[['Category','Task','Due Date','Status','Days Left']],
-      body:[...a].sort((x,b)=>{const ox={ov:0,td:1,sn:2,up:3,ok:4,none:5};return(ox[urg(x.dueDate).lv]??9)-(ox[urg(b.dueDate).lv]??9)}).map(t=>{
-        const u=urg(t.dueDate)
-        const dl=t.dueDate&&diffD(t.dueDate)
-        return[gc(t.category).label,t.title+(t.description?'\n'+t.description.slice(0,60)+(t.description.length>60?'...':''):''),t.dueDate?fmtD(t.dueDate):'—',u.lb,dl!==null?(dl<0?dl+' (LATE)':dl>0?'+'+dl:'Today'):'—']
-      }),
-      styles:{fontSize:8,cellPadding:3,lineColor:[42,47,58],lineWidth:.3},
-      headStyles:{fillColor:[26,30,37],textColor:[143,149,163],fontStyle:'bold',fontSize:7},
+  } else if(type==='contracts'){
+    const sorted=[...contracts].sort((a,b)=>(diffD(a.end)||999)-(diffD(b.end)||999))
+    const expiring=sorted.filter(c=>{const d=diffD(c.end);return d!==null&&d<=90})
+    const active2=sorted.filter(c=>{const d=diffD(c.end);return d!==null&&d>90})
+    const expired=sorted.filter(c=>{const d=diffD(c.end);return d!==null&&d<0})
+    const totalSum=sorted.reduce((s,c)=>s+(c.sum||0),0)
+
+    doc.setFillColor(26,30,37);doc.rect(0,y,210,18,'F')
+    ;[['CONTRACTS',sorted.length,14],['EXPIRING',expiring.length,60],['ACTIVE',active2.length,106],['EXPIRED',expired.length,152],['TOTAL VALUE',fmtMoney(totalSum).replace('S$','$'),178]].forEach(([l,v,x])=>{
+      doc.setTextColor(232,234,240);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text(''+v,x,y+9)
+      doc.setFontSize(6.5);doc.setFont('helvetica','normal');doc.setTextColor(143,149,163);doc.text(l,x,y+16)
+    })
+    y+=24
+    doc.autoTable({startY:y,
+      head:[['Company','Type of Work','Contact','Contract Sum','Payment','Start','End','Status']],
+      body:sorted.map(c=>{const d=diffD(c.end);const st=d<0?'EXPIRED':d<=90?'Expiring '+d+'d':'Active';return[c.name,c.work||'—',c.contact||'—',fmtMoney(c.sum),c.payment||'—',fmtD(c.start,true),fmtD(c.end,true),st]}),
+      styles:{fontSize:7,cellPadding:3,lineColor:[42,47,58],lineWidth:.3},
+      headStyles:{fillColor:[26,30,37],textColor:[143,149,163],fontStyle:'bold',fontSize:6.5},
       alternateRowStyles:{fillColor:[19,22,27]},
       bodyStyles:{fillColor:[13,15,18],textColor:[232,234,240]},
-      columnStyles:{0:{cellWidth:28},1:{cellWidth:76},2:{cellWidth:28},3:{cellWidth:28},4:{cellWidth:22}},
-      margin:{left:14,right:14},
-    })
-    y=doc.lastAutoTable.finalY+8
-  }
+      columnStyles:{0:{cellWidth:38},1:{cellWidth:28},2:{cellWidth:22},3:{cellWidth:24},4:{cellWidth:18},5:{cellWidth:18},6:{cellWidth:18},7:{cellWidth:22}},
+      margin:{left:14,right:14}})
 
-  // Completed tasks
-  if(d.length){
-    doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(45,216,122)
-    doc.text('COMPLETED TASKS ('+d.length+')',14,y);y+=4
-    doc.autoTable({
-      startY:y,
-      head:[['Category','Task','Due Date','Completed','Days Taken','On Time']],
-      body:[...d].sort((a,b)=>(b.completedAt||'').localeCompare(a.completedAt||'')).map(t=>{
-        const dur=t.completedAt&&t.createdAt?Math.max(0,Math.round((new Date(t.completedAt+'T12:00:00')-new Date(t.createdAt+'T12:00:00'))/86400000)):null
-        const onT=t.dueDate&&t.completedAt&&t.completedAt<=t.dueDate
-        return[gc(t.category).label,t.title,t.dueDate?fmtD(t.dueDate):'—',t.completedAt?fmtD(t.completedAt):'—',dur!==null?dur+' days':'—',t.dueDate?(onT?'✓ Yes':'✗ Late'):'—']
-      }),
-      styles:{fontSize:8,cellPadding:3,lineColor:[42,47,58],lineWidth:.3},
-      headStyles:{fillColor:[26,30,37],textColor:[143,149,163],fontStyle:'bold',fontSize:7},
-      alternateRowStyles:{fillColor:[19,22,27]},
-      bodyStyles:{fillColor:[13,15,18],textColor:[232,234,240]},
-      columnStyles:{0:{cellWidth:26},1:{cellWidth:60},2:{cellWidth:26},3:{cellWidth:26},4:{cellWidth:22},5:{cellWidth:18}},
-      margin:{left:14,right:14},
+  } else if(type==='utilities'){
+    const utCats={electric:'Electricity',water:'Water',gas:'Gas',internet:'Internet / Comms',all:'All Utilities'}
+    const utLabel=utCats[util]||'All Utilities'
+    doc.setFontSize(9);doc.setTextColor(143,149,163);doc.text('Utility Category: '+utLabel+' | Period: '+periodLabel,14,y);y+=8
+    const utTasks=tasks.filter(t=>t.category==='utilities').filter(t=>{
+      if(util!=='all'){const kw={electric:['electric','power','genset'],water:['water','plumb'],gas:['gas'],internet:['internet','comms','telco','cctv']}[util]||[];return kw.some(k=>t.title.toLowerCase().includes(k)||t.description?.toLowerCase().includes(k))}
+      return true
+    }).filter(t=>{if(month===null)return true;const ref=t.dueDate||t.createdAt;if(!ref)return false;const d=new Date(ref+'T12:00:00');return d.getMonth()===month&&d.getFullYear()===year})
+    const budItems=budget.filter(b=>b.category==='Utilities'&&b.year===year)
+    const totalBud=budItems.reduce((s,b)=>s+(b.budgeted||0),0)
+    const totalAct=budItems.reduce((s,b)=>s+(b.actual||0),0)
+    doc.setFillColor(26,30,37);doc.rect(0,y,210,18,'F')
+    ;[['UTIL TASKS',utTasks.length,14],['COMPLETED',utTasks.filter(t=>t.completed).length,60],['BUDGETED',fmtMoney(totalBud).replace('S$','$'),106],['ACTUAL',fmtMoney(totalAct).replace('S$','$'),152]].forEach(([l,v,x])=>{
+      doc.setTextColor(232,234,240);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text(''+v,x,y+9)
+      doc.setFontSize(6.5);doc.setFont('helvetica','normal');doc.setTextColor(143,149,163);doc.text(l,x,y+16)
     })
+    y+=24
+    if(utTasks.length){
+      doc.autoTable({startY:y,
+        head:[['Task','Assigned To','Due Date','Status']],
+        body:utTasks.map(t=>[t.title+(t.description?'\n'+t.description.slice(0,60):''),t.assignedTo||'—',t.dueDate?fmtD(t.dueDate):'—',t.completed?'Completed ✓':urgency(t.dueDate).lb]),
+        styles:{fontSize:7.5,cellPadding:3,lineColor:[42,47,58],lineWidth:.3},
+        headStyles:{fillColor:[26,30,37],textColor:[143,149,163],fontStyle:'bold',fontSize:7},
+        alternateRowStyles:{fillColor:[19,22,27]},
+        bodyStyles:{fillColor:[13,15,18],textColor:[232,234,240]},
+        margin:{left:14,right:14}})
+      y=doc.lastAutoTable.finalY+8
+    }
+    if(budItems.length){
+      doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(79,142,247);doc.text('UTILITIES BUDGET',14,y);y+=3
+      doc.autoTable({startY:y,
+        head:[['Item','Budgeted','Actual','Variance','Notes']],
+        body:budItems.map(b=>{const v=(b.budgeted||0)-(b.actual||0);return[b.item,fmtMoney(b.budgeted),fmtMoney(b.actual),(v>=0?'+':'')+fmtMoney(v),b.notes||'—']}),
+        styles:{fontSize:7.5,cellPadding:3,lineColor:[42,47,58],lineWidth:.3},
+        headStyles:{fillColor:[26,30,37],textColor:[143,149,163],fontStyle:'bold',fontSize:7},
+        alternateRowStyles:{fillColor:[19,22,27]},
+        bodyStyles:{fillColor:[13,15,18],textColor:[232,234,240]},
+        margin:{left:14,right:14}})
+    }
   }
 
   // Footer
   const pc=doc.internal.getNumberOfPages()
   for(let i=1;i<=pc;i++){
     doc.setPage(i)
+    doc.setFillColor(13,15,18);doc.rect(0,284,210,14,'F')
     doc.setFontSize(7);doc.setTextColor(90,96,112)
-    doc.text('Page '+i+' of '+pc+' — Condo MA Management Report',14,290)
-    doc.text(now,196,290,{align:'right'})
+    doc.text('Page '+i+' of '+pc+' — Condo MA Management Portal',14,291)
+    doc.text(now,196,291,{align:'right'})
+    doc.text('CONFIDENTIAL — For internal use only',105,291,{align:'center'})
   }
   const nd=new Date()
-  doc.save('condo-ma-report-'+nd.getFullYear()+String(nd.getMonth()+1).padStart(2,'0')+String(nd.getDate()).padStart(2,'0')+'.pdf')
+  doc.save('condo-ma-'+type+'-'+nd.getFullYear()+String(nd.getMonth()+1).padStart(2,'0')+String(nd.getDate()).padStart(2,'0')+'.pdf')
+}
+
+// Style secondary modal overlays
+;['rov','cov','dov','bov'].forEach(id=>{
+  const el=document.getElementById(id)
+  el.style.cssText='position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(5px)'
 })
 
+// Init
 render()
 </script>
 </body>
